@@ -1,0 +1,215 @@
+{# ============================================================
+   home.html — Landing page
+   Sections: Hero · Features · How it works · CTA
+   ============================================================ #}
+{% extends "base.html" %}
+
+{% block content %}
+
+{# ── HERO ────────────────────────────────────────────────── #}
+<section class="hero-section">
+  <div class="container position-relative">
+    <div class="row align-items-center gy-5">
+
+      {# Left: copy #}
+      <div class="col-lg-6 fade-in-up">
+        <div class="hero-badge">
+          <i class="bi bi-stars me-1"></i> Powered by IBM Watsonx AI
+        </div>
+        <h1 class="hero-title">
+          Find Your Perfect<br>
+          <span style="color:#bfdbfe">College Match</span>
+        </h1>
+        <p class="hero-subtitle">
+          Enter your CET percentile, category, and preferences — our AI engine
+          instantly recommends the best-fit colleges and branches for you.
+        </p>
+        <div class="d-flex flex-wrap gap-3">
+          <a href="{{ url_for('find_colleges') }}" class="hero-cta-primary">
+            <i class="bi bi-search me-2"></i>Get Started Free
+          </a>
+          <a href="{{ url_for('chatbot') }}" class="hero-cta-secondary">
+            <i class="bi bi-chat-dots me-2"></i>Ask AI
+          </a>
+        </div>
+
+        {# Stats #}
+        <div class="hero-stats">
+          <div>
+            <div class="hero-stat-value">500+</div>
+            <div class="hero-stat-label">Colleges Listed</div>
+          </div>
+          <div>
+            <div class="hero-stat-value">50K+</div>
+            <div class="hero-stat-label">Students Helped</div>
+          </div>
+          <div>
+            <div class="hero-stat-value">98%</div>
+            <div class="hero-stat-label">Accuracy Rate</div>
+          </div>
+        </div>
+      </div>
+
+      {# Right: illustration card #}
+      <div class="col-lg-6 d-none d-lg-flex justify-content-center fade-in-up delay-2">
+        <div class="p-4 rounded-4 text-white text-center"
+             style="background:rgba(255,255,255,0.12);backdrop-filter:blur(10px);
+                    border:1px solid rgba(255,255,255,0.2);max-width:380px;width:100%">
+          <i class="bi bi-mortarboard-fill" style="font-size:5rem;opacity:.9"></i>
+          <h4 class="mt-3 fw-bold">Admission Simplified</h4>
+          <p class="mt-2 mb-0" style="opacity:.8;font-size:.9rem">
+            AI-driven, data-backed recommendations in seconds. No more guesswork.
+          </p>
+          <div class="mt-4 d-flex justify-content-center gap-3 flex-wrap">
+            <span class="badge rounded-pill px-3 py-2" style="background:rgba(255,255,255,0.2)">
+              <i class="bi bi-cpu me-1"></i>AI Powered
+            </span>
+            <span class="badge rounded-pill px-3 py-2" style="background:rgba(255,255,255,0.2)">
+              <i class="bi bi-lightning me-1"></i>Instant Results
+            </span>
+            <span class="badge rounded-pill px-3 py-2" style="background:rgba(255,255,255,0.2)">
+              <i class="bi bi-shield-check me-1"></i>Accurate Data
+            </span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+{# ── FEATURES ────────────────────────────────────────────── #}
+<section class="py-6 py-5" id="features" style="background:#fff">
+  <div class="container">
+    <div class="text-center">
+      <span class="section-tag">Features</span>
+      <h2 class="section-title">Everything You Need for Admission</h2>
+      <p class="section-subtitle">
+        One platform to research, compare, and decide your college journey.
+      </p>
+    </div>
+
+    <div class="row g-4">
+
+      {# Feature 1 #}
+      <div class="col-sm-6 col-lg-3 reveal">
+        <div class="feature-card">
+          <div class="feature-icon icon-indigo">
+            <i class="bi bi-stars"></i>
+          </div>
+          <h5 class="fw-700 mb-2">Smart Recommendations</h5>
+          <p class="text-muted small mb-0">
+            IBM Watsonx AI analyses your profile and suggests the most suitable
+            colleges, ranked by fit score.
+          </p>
+        </div>
+      </div>
+
+      {# Feature 2 #}
+      <div class="col-sm-6 col-lg-3 reveal delay-1">
+        <div class="feature-card">
+          <div class="feature-icon icon-sky">
+            <i class="bi bi-bar-chart-steps"></i>
+          </div>
+          <h5 class="fw-700 mb-2">College Comparison</h5>
+          <p class="text-muted small mb-0">
+            Compare multiple colleges side-by-side on cutoffs, fees, placement
+            records, and available branches.
+          </p>
+        </div>
+      </div>
+
+      {# Feature 3 #}
+      <div class="col-sm-6 col-lg-3 reveal delay-2">
+        <div class="feature-card">
+          <div class="feature-icon icon-amber">
+            <i class="bi bi-chat-dots"></i>
+          </div>
+          <h5 class="fw-700 mb-2">AI Chat Assistant</h5>
+          <p class="text-muted small mb-0">
+            Ask any admission question in plain language and get instant,
+            personalised guidance from our AI.
+          </p>
+        </div>
+      </div>
+
+      {# Feature 4 #}
+      <div class="col-sm-6 col-lg-3 reveal delay-3">
+        <div class="feature-card">
+          <div class="feature-icon icon-emerald">
+            <i class="bi bi-database-check"></i>
+          </div>
+          <h5 class="fw-700 mb-2">Real-time Dataset</h5>
+          <p class="text-muted small mb-0">
+            Built on an up-to-date dataset of Maharashtra CET cutoffs across
+            all categories and branches.
+          </p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+{# ── HOW IT WORKS ────────────────────────────────────────── #}
+<section class="py-5" style="background:var(--bg-soft)">
+  <div class="container">
+    <div class="text-center">
+      <span class="section-tag">How It Works</span>
+      <h2 class="section-title">Three Simple Steps</h2>
+      <p class="section-subtitle">From percentile to admission list in under a minute.</p>
+    </div>
+
+    <div class="row g-4 justify-content-center">
+
+      <div class="col-md-4 reveal">
+        <div class="text-center p-4">
+          <div class="mx-auto mb-3 rounded-circle d-flex align-items-center justify-content-center fw-bold text-white"
+               style="width:64px;height:64px;background:var(--primary);font-size:1.5rem">1</div>
+          <h5 class="fw-700">Enter Your Profile</h5>
+          <p class="text-muted small">Fill in your CET percentile, category, preferred branch, and city preferences.</p>
+        </div>
+      </div>
+
+      <div class="col-md-4 reveal delay-1">
+        <div class="text-center p-4">
+          <div class="mx-auto mb-3 rounded-circle d-flex align-items-center justify-content-center fw-bold text-white"
+               style="width:64px;height:64px;background:var(--secondary);font-size:1.5rem">2</div>
+          <h5 class="fw-700">AI Processes Data</h5>
+          <p class="text-muted small">IBM Watsonx analyses thousands of historical cutoffs to find your best options.</p>
+        </div>
+      </div>
+
+      <div class="col-md-4 reveal delay-2">
+        <div class="text-center p-4">
+          <div class="mx-auto mb-3 rounded-circle d-flex align-items-center justify-content-center fw-bold text-white"
+               style="width:64px;height:64px;background:var(--success);font-size:1.5rem">3</div>
+          <h5 class="fw-700">Get Recommendations</h5>
+          <p class="text-muted small">Receive a ranked list of colleges with detailed profiles, fees, and admit chances.</p>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="text-center mt-3">
+      <a href="{{ url_for('find_colleges') }}" class="btn btn-primary-custom px-5">
+        <i class="bi bi-search me-2"></i>Find My Colleges
+      </a>
+    </div>
+  </div>
+</section>
+
+{# ── CTA BANNER ──────────────────────────────────────────── #}
+<section class="py-5" style="background:linear-gradient(135deg,#4f46e5,#0ea5e9)">
+  <div class="container text-center text-white">
+    <h2 class="fw-800 mb-2" style="font-size:2rem">Ready to Find Your Dream College?</h2>
+    <p class="mb-4" style="opacity:.88;font-size:1.05rem">
+      Join thousands of students who found their perfect admission match.
+    </p>
+    <a href="{{ url_for('find_colleges') }}" class="hero-cta-primary">
+      <i class="bi bi-mortarboard me-2"></i>Start for Free
+    </a>
+  </div>
+</section>
+
+{% endblock %}

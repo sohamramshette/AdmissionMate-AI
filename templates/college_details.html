@@ -1,0 +1,610 @@
+{# ============================================================
+   college_details.html — Full college profile page
+   Route: /college/<college_id>
+   Extends base.html — uses existing CSS custom properties
+   ============================================================ #}
+{% extends "base.html" %}
+
+{% block extra_css %}
+<style>
+  /* ── Detail page hero ───────────────────────────────────── */
+  .detail-hero {
+    background: linear-gradient(135deg, var(--primary) 0%, #6366f1 50%, var(--secondary) 100%);
+    padding: 4rem 0 3.5rem;
+    color: #fff;
+    position: relative;
+    overflow: hidden;
+  }
+  .detail-hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  }
+  .detail-hero-logo {
+    width: 80px; height: 80px;
+    border-radius: 1rem;
+    background: rgba(255,255,255,0.15);
+    border: 2px solid rgba(255,255,255,0.35);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2.2rem; color: #fff;
+    flex-shrink: 0;
+  }
+  .detail-hero h1 { font-weight: 800; font-size: clamp(1.5rem, 3.5vw, 2.3rem); margin-bottom: .35rem; }
+  .detail-hero .sub { opacity: .85; font-size: 1.02rem; }
+
+  /* ── Grade badges ───────────────────────────────────────── */
+  .naac-badge {
+    display: inline-flex; align-items: center; gap: .35rem;
+    background: rgba(255,255,255,.18);
+    border: 1px solid rgba(255,255,255,.35);
+    color: #fff; font-size: .8rem; font-weight: 700;
+    padding: .3rem .85rem; border-radius: 999px;
+  }
+  .naac-badge.grade-aplus { background: rgba(16,185,129,.25); border-color: rgba(16,185,129,.5); }
+  .naac-badge.grade-a     { background: rgba(14,165,233,.25); border-color: rgba(14,165,233,.5); }
+
+  /* ── Info cards ─────────────────────────────────────────── */
+  .info-card {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--card-shadow);
+    height: 100%;
+  }
+  .info-card-header {
+    padding: 1.1rem 1.5rem .9rem;
+    border-bottom: 1px solid #f1f5f9;
+    display: flex; align-items: center; gap: .6rem;
+  }
+  .info-card-header .icon-box {
+    width: 36px; height: 36px;
+    border-radius: .6rem;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1rem;
+  }
+  .info-card-header h6 {
+    font-weight: 700; font-size: .92rem; color: #0f172a; margin: 0;
+  }
+  .info-card-body { padding: 1.25rem 1.5rem; }
+
+  /* ── Stat pill ──────────────────────────────────────────── */
+  .stat-pill {
+    background: var(--bg-soft);
+    border: 1px solid #e2e8f0;
+    border-radius: .75rem;
+    padding: .85rem 1rem;
+    text-align: center;
+  }
+  .stat-pill .stat-val {
+    font-size: 1.35rem; font-weight: 800; color: var(--primary); line-height: 1;
+  }
+  .stat-pill .stat-label { font-size: .75rem; color: var(--text-muted); margin-top: .25rem; }
+
+  /* ── Branch pills ───────────────────────────────────────── */
+  .branch-pill {
+    display: inline-flex; align-items: center; gap: .4rem;
+    background: rgba(79,70,229,.07);
+    color: var(--primary);
+    border: 1px solid rgba(79,70,229,.2);
+    border-radius: 999px;
+    font-size: .8rem; font-weight: 600;
+    padding: .3rem .9rem;
+  }
+
+  /* ── Facility chips ─────────────────────────────────────── */
+  .facility-chip {
+    display: inline-flex; align-items: center; gap: .4rem;
+    border-radius: .6rem; padding: .55rem .9rem;
+    font-size: .82rem; font-weight: 600;
+    border: 1px solid;
+  }
+  .facility-chip.avail  { background: rgba(16,185,129,.08); color: #059669; border-color: rgba(16,185,129,.25); }
+  .facility-chip.unavail{ background: #f8fafc; color: #94a3b8; border-color: #e2e8f0; }
+
+  /* ── Cutoff table ───────────────────────────────────────── */
+  .cutoff-table { font-size: .88rem; }
+  .cutoff-table th { background: #f8fafc; font-weight: 700; color: #374151; }
+  .cutoff-table td { vertical-align: middle; }
+
+  /* ── AI summary box ─────────────────────────────────────── */
+  .ai-summary-box {
+    background: linear-gradient(135deg, rgba(79,70,229,.05), rgba(14,165,233,.05));
+    border: 1px solid rgba(79,70,229,.15);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem 1.75rem;
+  }
+  .ai-summary-box ul { padding-left: 1.25rem; margin: 0; }
+  .ai-summary-box li { margin-bottom: .5rem; line-height: 1.65; color: #334155; font-size: .95rem; }
+
+  /* ── Map placeholder ────────────────────────────────────── */
+  .map-placeholder {
+    background: linear-gradient(135deg, rgba(79,70,229,.06), rgba(14,165,233,.06));
+    border: 1px dashed rgba(79,70,229,.25);
+    border-radius: var(--radius);
+    min-height: 160px;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    color: var(--text-muted); font-size: .9rem; gap: .5rem;
+  }
+
+  /* ── Action strip ───────────────────────────────────────── */
+  .action-strip {
+    position: sticky; bottom: 0; z-index: 50;
+    background: rgba(255,255,255,.95);
+    backdrop-filter: blur(12px);
+    border-top: 1px solid #e2e8f0;
+    padding: .9rem 0;
+    box-shadow: 0 -4px 20px rgba(0,0,0,.06);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+
+{# ── Hero ─────────────────────────────────────────────────── #}
+<div class="detail-hero">
+  <div class="container position-relative">
+    <div class="d-flex align-items-start gap-4 flex-wrap">
+
+      {# Logo / icon placeholder #}
+      <div class="detail-hero-logo">
+        <i class="bi bi-bank2"></i>
+      </div>
+
+      {# Core identity #}
+      <div class="flex-grow-1">
+        <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+
+          {# NAAC badge #}
+          {% set naac = college.naac_grade %}
+          <span class="naac-badge {% if naac == 'A+' %}grade-aplus{% elif naac == 'A' %}grade-a{% endif %}">
+            <i class="bi bi-patch-check-fill"></i>
+            NAAC {{ naac }}
+          </span>
+
+          {# NBA badge #}
+          {% if college.nba_accredited | lower == 'yes' %}
+          <span class="naac-badge" style="background:rgba(245,158,11,.25);border-color:rgba(245,158,11,.5)">
+            <i class="bi bi-award-fill"></i> NBA Approved
+          </span>
+          {% endif %}
+
+          {# Ownership type #}
+          <span class="naac-badge">
+            <i class="bi bi-building me-1"></i>{{ college.ownership_label }}
+          </span>
+        </div>
+
+        <h1>{{ college.name }}</h1>
+
+        <p class="sub mb-2">
+          <i class="bi bi-geo-alt-fill me-1"></i>
+          {{ college.city }}{% if college.district and college.district != college.city %}, {{ college.district }}{% endif %}
+          &nbsp;&middot;&nbsp;
+          <i class="bi bi-mortarboard me-1"></i>{{ college.university }}
+          {% if college.established_year %}
+          &nbsp;&middot;&nbsp;
+          <i class="bi bi-calendar3 me-1"></i>Est. {{ college.established_year }}
+          {% if college.college_age %}<span style="opacity:.7"> ({{ college.college_age }} yrs)</span>{% endif %}
+          {% endif %}
+        </p>
+
+        {# Key stats row #}
+        <div class="d-flex flex-wrap gap-3 mt-3">
+          <div style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:.75rem;padding:.5rem 1.1rem;text-align:center;min-width:90px">
+            <div style="font-size:1.3rem;font-weight:800;line-height:1">{{ college.fees_display }}</div>
+            <div style="font-size:.72rem;opacity:.8;margin-top:.2rem">Annual Fees</div>
+          </div>
+          <div style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:.75rem;padding:.5rem 1.1rem;text-align:center;min-width:90px">
+            <div style="font-size:1.3rem;font-weight:800;line-height:1">{{ college.placement_display }}</div>
+            <div style="font-size:.72rem;opacity:.8;margin-top:.2rem">Avg Placement</div>
+          </div>
+          <div style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:.75rem;padding:.5rem 1.1rem;text-align:center;min-width:90px">
+            <div style="font-size:1.3rem;font-weight:800;line-height:1">{{ college.all_branch_names | length }}</div>
+            <div style="font-size:.72rem;opacity:.8;margin-top:.2rem">Branches</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{# ── Main content ─────────────────────────────────────────── #}
+<section class="py-5">
+  <div class="container">
+    <div class="row g-4">
+
+      {# ════════════════════════════════════════════════════
+         LEFT COLUMN  (col-lg-8)
+      ════════════════════════════════════════════════════ #}
+      <div class="col-lg-8">
+
+        {# ── AI Summary ──────────────────────────────────── #}
+        {% if college.ai_summary %}
+        <div class="ai-summary-box mb-4 fade-in-up">
+          <div class="d-flex align-items-center gap-2 mb-3">
+            <div class="icon-box icon-indigo" style="width:36px;height:36px;border-radius:.6rem;display:flex;align-items:center;justify-content:center">
+              <i class="bi bi-stars"></i>
+            </div>
+            <h6 class="fw-700 mb-0" style="color:#0f172a">AI College Summary <span class="text-muted fw-normal small ms-1">— powered by IBM Watsonx</span></h6>
+          </div>
+          <ul>
+            {% for line in college.ai_summary.split('\n') %}
+              {% set stripped = line.strip().lstrip('- ').strip() %}
+              {% if stripped %}
+                <li>{{ stripped }}</li>
+              {% endif %}
+            {% endfor %}
+          </ul>
+        </div>
+        {% endif %}
+
+        {# ── Overview ────────────────────────────────────── #}
+        <div class="info-card mb-4 fade-in-up">
+          <div class="info-card-header">
+            <div class="icon-box icon-indigo"><i class="bi bi-info-circle-fill"></i></div>
+            <h6>College Overview</h6>
+          </div>
+          <div class="info-card-body">
+            <div class="row g-3">
+              <div class="col-sm-6">
+                <div class="small text-muted mb-1">University</div>
+                <div class="fw-600" style="font-size:.95rem">{{ college.university or 'N/A' }}</div>
+              </div>
+              <div class="col-sm-6">
+                <div class="small text-muted mb-1">Ownership / Type</div>
+                <div class="fw-600" style="font-size:.95rem">{{ college.ownership_label }}</div>
+              </div>
+              <div class="col-sm-6">
+                <div class="small text-muted mb-1">City</div>
+                <div class="fw-600" style="font-size:.95rem">
+                  <i class="bi bi-geo-alt text-primary me-1"></i>{{ college.city }}
+                  {% if college.district and college.district != college.city %}, {{ college.district }}{% endif %}
+                </div>
+              </div>
+              {% if college.established_year %}
+              <div class="col-sm-6">
+                <div class="small text-muted mb-1">Established</div>
+                <div class="fw-600" style="font-size:.95rem">
+                  {{ college.established_year }}
+                  {% if college.college_age %}
+                    <span class="text-muted fw-400">({{ college.college_age }} years old)</span>
+                  {% endif %}
+                </div>
+              </div>
+              {% endif %}
+              <div class="col-sm-6">
+                <div class="small text-muted mb-1">NAAC Grade</div>
+                <div class="fw-700" style="font-size:.95rem;color:var(--primary)">{{ college.naac_grade }}</div>
+              </div>
+              <div class="col-sm-6">
+                <div class="small text-muted mb-1">NBA Accreditation</div>
+                <div class="fw-600" style="font-size:.95rem">
+                  {% if college.nba_accredited | lower == 'yes' %}
+                    <i class="bi bi-check-circle-fill text-success me-1"></i>Accredited
+                  {% else %}
+                    <i class="bi bi-dash-circle text-muted me-1"></i>Not Accredited
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {# ── Admission Info — Branches ────────────────────── #}
+        <div class="info-card mb-4 fade-in-up">
+          <div class="info-card-header">
+            <div class="icon-box icon-sky"><i class="bi bi-diagram-3-fill"></i></div>
+            <h6>Available Branches</h6>
+          </div>
+          <div class="info-card-body">
+            <div class="d-flex flex-wrap gap-2 mb-4">
+              {% for branch in college.all_branch_names %}
+                <span class="branch-pill">
+                  <i class="bi bi-gear-fill" style="font-size:.7rem"></i>{{ branch }}
+                </span>
+              {% endfor %}
+            </div>
+
+            {# Eligibility note #}
+            <div class="d-flex align-items-start gap-2 p-3 rounded-3" style="background:#f8fafc;border:1px solid #e2e8f0">
+              <i class="bi bi-info-circle text-primary mt-1 flex-shrink-0"></i>
+              <div class="small text-muted">
+                Admission is through the <strong>MHT CET</strong> merit list via the CAP (Centralised Admission Process)
+                conducted by the State CET Cell, Maharashtra.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {# ── Category-wise Cutoffs ────────────────────────── #}
+        <div class="info-card mb-4 fade-in-up">
+          <div class="info-card-header">
+            <div class="icon-box icon-amber"><i class="bi bi-bar-chart-fill"></i></div>
+            <h6>Category-wise Cutoffs <span class="text-muted fw-normal small">(MHT CET percentile)</span></h6>
+          </div>
+          <div class="info-card-body p-0">
+            <div class="table-responsive">
+              <table class="table table-hover cutoff-table mb-0">
+                <thead>
+                  <tr>
+                    <th class="ps-4 py-3">Branch</th>
+                    <th class="py-3">Category</th>
+                    <th class="py-3 text-end pe-4">Cutoff Percentile</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for b in college.branches | sort(attribute='cutoff', reverse=True) %}
+                  <tr>
+                    <td class="ps-4 py-2 fw-600">{{ b.branch }}</td>
+                    <td class="py-2">
+                      <span class="badge rounded-pill"
+                            style="background:rgba(79,70,229,.1);color:var(--primary);font-weight:600;font-size:.75rem">
+                        {{ b.category }}
+                      </span>
+                    </td>
+                    <td class="py-2 text-end pe-4">
+                      <span class="fw-700" style="color:#0f172a">{{ b.cutoff }}</span>
+                      {% if b.intake %}
+                        <span class="text-muted small ms-2">({{ b.intake }} seats)</span>
+                      {% endif %}
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        {# ── Placements ──────────────────────────────────── #}
+        <div class="info-card mb-4 fade-in-up">
+          <div class="info-card-header">
+            <div class="icon-box icon-emerald"><i class="bi bi-briefcase-fill"></i></div>
+            <h6>Placement Statistics</h6>
+          </div>
+          <div class="info-card-body">
+            <div class="row g-3 mb-4">
+              <div class="col-6 col-md-4">
+                <div class="stat-pill">
+                  <div class="stat-val">{{ college.placement_display }}</div>
+                  <div class="stat-label">Average Package</div>
+                </div>
+              </div>
+              <div class="col-6 col-md-4">
+                <div class="stat-pill">
+                  <div class="stat-val">{{ college.naac_grade }}</div>
+                  <div class="stat-label">NAAC Grade</div>
+                </div>
+              </div>
+              <div class="col-6 col-md-4">
+                <div class="stat-pill">
+                  <div class="stat-val">
+                    {% if college.nba_accredited | lower == 'yes' %}
+                      <i class="bi bi-check-circle-fill text-success" style="font-size:1.2rem"></i>
+                    {% else %}
+                      <span style="font-size:1rem;color:#94a3b8">N/A</span>
+                    {% endif %}
+                  </div>
+                  <div class="stat-label">NBA Accreditation</div>
+                </div>
+              </div>
+            </div>
+            <div class="d-flex align-items-start gap-2 p-3 rounded-3" style="background:#f0fdf4;border:1px solid #bbf7d0">
+              <i class="bi bi-info-circle text-success mt-1 flex-shrink-0"></i>
+              <p class="small mb-0" style="color:#166534">
+                Average placement figures are drawn from the dataset. Actual package ranges may vary by batch and branch.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {# ── Fees ────────────────────────────────────────── #}
+        <div class="info-card mb-4 fade-in-up">
+          <div class="info-card-header">
+            <div class="icon-box" style="background:rgba(245,158,11,.1);color:var(--accent)">
+              <i class="bi bi-cash-coin"></i>
+            </div>
+            <h6>Fees & Financials</h6>
+          </div>
+          <div class="info-card-body">
+            <div class="row g-3">
+              <div class="col-sm-6">
+                <div class="stat-pill">
+                  <div class="stat-val" style="font-size:1.15rem">{{ college.fees_display }}</div>
+                  <div class="stat-label">Tuition Fees</div>
+                </div>
+              </div>
+              <div class="col-sm-6">
+                <div class="stat-pill">
+                  <div class="stat-val" style="font-size:1.15rem">
+                    {{ college.ownership_label }}
+                  </div>
+                  <div class="stat-label">College Type</div>
+                </div>
+              </div>
+            </div>
+            <div class="mt-3 p-3 rounded-3" style="background:#fffbeb;border:1px solid #fde68a">
+              <div class="d-flex align-items-start gap-2">
+                <i class="bi bi-lightbulb-fill text-warning mt-1 flex-shrink-0"></i>
+                <p class="small mb-0" style="color:#92400e">
+                  Government and Government Autonomous colleges typically have significantly lower fees.
+                  Scholarships are available for eligible reserved category students through the MahaDBT portal.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {# ── Facilities ───────────────────────────────────── #}
+        <div class="info-card mb-4 fade-in-up">
+          <div class="info-card-header">
+            <div class="icon-box icon-indigo"><i class="bi bi-building-fill-check"></i></div>
+            <h6>Campus Facilities</h6>
+            <span class="ms-auto small text-muted">Indicative based on accreditation</span>
+          </div>
+          <div class="info-card-body">
+            {% set naac_ok = college.naac_grade in ('A+', 'A') %}
+            {% set nba_ok  = college.nba_accredited | lower == 'yes' %}
+            {% set gov     = 'government' in college.type | lower %}
+            {% set facilities = [
+              ("bi-house-fill",      "Hostel",        naac_ok),
+              ("bi-book-fill",       "Library",       True),
+              ("bi-trophy-fill",     "Sports Ground", naac_ok or gov),
+              ("bi-flask-fill",      "Labs & Workshops", nba_ok),
+              ("bi-wifi",            "Wi-Fi Campus",  naac_ok),
+              ("bi-bus-front-fill",  "Transport",     gov),
+            ] %}
+            <div class="d-flex flex-wrap gap-2">
+              {% for icon, label, avail in facilities %}
+                <span class="facility-chip {% if avail %}avail{% else %}unavail{% endif %}">
+                  <i class="bi {{ icon }}"></i>{{ label }}
+                </span>
+              {% endfor %}
+            </div>
+            <p class="small text-muted mt-3 mb-0">
+              <i class="bi bi-info-circle me-1"></i>
+              Facility availability is inferred from accreditation status. Verify directly with the institution.
+            </p>
+          </div>
+        </div>
+
+      </div>{# /col-lg-8 #}
+
+      {# ════════════════════════════════════════════════════
+         RIGHT SIDEBAR  (col-lg-4)
+      ════════════════════════════════════════════════════ #}
+      <div class="col-lg-4">
+
+        {# ── Quick Stats ─────────────────────────────────── #}
+        <div class="info-card mb-4 fade-in-up">
+          <div class="info-card-header">
+            <div class="icon-box icon-indigo"><i class="bi bi-speedometer2"></i></div>
+            <h6>Quick Stats</h6>
+          </div>
+          <div class="info-card-body p-3">
+            <ul class="list-group list-group-flush">
+              <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-2 border-0 border-bottom">
+                <span class="small text-muted">College ID</span>
+                <span class="fw-600 font-monospace small" style="color:#0f172a">{{ college.college_id }}</span>
+              </li>
+              <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-2 border-0 border-bottom">
+                <span class="small text-muted">NAAC Grade</span>
+                <span class="fw-700" style="color:var(--primary)">{{ college.naac_grade }}</span>
+              </li>
+              <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-2 border-0 border-bottom">
+                <span class="small text-muted">NBA</span>
+                <span class="fw-600">
+                  {% if college.nba_accredited | lower == 'yes' %}
+                    <i class="bi bi-check-circle-fill text-success"></i> Yes
+                  {% else %}
+                    <i class="bi bi-x-circle text-muted"></i> No
+                  {% endif %}
+                </span>
+              </li>
+              <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-2 border-0 border-bottom">
+                <span class="small text-muted">Annual Fees</span>
+                <span class="fw-600">{{ college.fees_display }}</span>
+              </li>
+              <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-2 border-0 border-bottom">
+                <span class="small text-muted">Avg Placement</span>
+                <span class="fw-600" style="color:var(--success)">{{ college.placement_display }}</span>
+              </li>
+              <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-2 border-0 border-bottom">
+                <span class="small text-muted">City</span>
+                <span class="fw-600">{{ college.city }}</span>
+              </li>
+              <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-2 border-0">
+                <span class="small text-muted">Branches</span>
+                <span class="fw-600">{{ college.all_branch_names | length }}</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        {# ── Category cutoff summary ──────────────────────── #}
+        {% if college.cutoff_by_category %}
+        <div class="info-card mb-4 fade-in-up">
+          <div class="info-card-header">
+            <div class="icon-box icon-amber"><i class="bi bi-funnel-fill"></i></div>
+            <h6>Cutoffs by Category</h6>
+          </div>
+          <div class="info-card-body p-3">
+            {% for category, entries in college.cutoff_by_category.items() %}
+              <div class="mb-3">
+                <div class="d-flex align-items-center justify-content-between mb-1">
+                  <span class="badge rounded-pill"
+                        style="background:rgba(79,70,229,.1);color:var(--primary);font-weight:700;font-size:.75rem;padding:.3rem .8rem">
+                    {{ category }}
+                  </span>
+                </div>
+                {% for e in entries | sort(attribute='cutoff', reverse=True) %}
+                  <div class="d-flex justify-content-between align-items-center py-1"
+                       style="border-bottom:1px solid #f1f5f9;font-size:.83rem">
+                    <span class="text-muted" style="max-width:62%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+                      {{ e.branch }}
+                    </span>
+                    <span class="fw-700" style="color:#0f172a">{{ e.cutoff }}</span>
+                  </div>
+                {% endfor %}
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
+        {# ── Location card ───────────────────────────────── #}
+        <div class="info-card mb-4 fade-in-up">
+          <div class="info-card-header">
+            <div class="icon-box icon-sky"><i class="bi bi-map-fill"></i></div>
+            <h6>Location</h6>
+          </div>
+          <div class="info-card-body">
+            <div class="map-placeholder mb-3">
+              <i class="bi bi-geo-alt-fill" style="font-size:2rem;color:var(--primary);opacity:.5"></i>
+              <div class="fw-600" style="color:#475569">{{ college.city }}</div>
+              {% if college.district and college.district != college.city %}
+                <div class="small" style="color:#94a3b8">{{ college.district }} District</div>
+              {% endif %}
+            </div>
+            <p class="small text-muted mb-0">
+              <i class="bi bi-info-circle me-1"></i>
+              {{ college.name }} is located in {{ college.city }}, Maharashtra.
+            </p>
+          </div>
+        </div>
+
+        {# ── Action Buttons ───────────────────────────────── #}
+        <div class="info-card fade-in-up">
+          <div class="info-card-header">
+            <div class="icon-box icon-indigo"><i class="bi bi-lightning-fill"></i></div>
+            <h6>Quick Actions</h6>
+          </div>
+          <div class="info-card-body d-grid gap-2">
+            <a href="{{ url_for('compare') }}"
+               class="btn btn-primary-custom">
+              <i class="bi bi-bar-chart-steps me-2"></i>Compare Colleges
+            </a>
+            <a href="{{ url_for('chatbot') }}"
+               class="btn btn-outline-primary rounded-pill fw-600">
+              <i class="bi bi-chat-dots me-2"></i>Ask AI about this College
+            </a>
+            <a href="{{ url_for('recommendations') }}"
+               class="btn btn-outline-secondary rounded-pill fw-600">
+              <i class="bi bi-arrow-left me-2"></i>Back to Recommendations
+            </a>
+            <a href="{{ url_for('find_colleges') }}"
+               class="btn btn-outline-secondary rounded-pill fw-600">
+              <i class="bi bi-search me-2"></i>New Search
+            </a>
+          </div>
+        </div>
+
+      </div>{# /col-lg-4 #}
+
+    </div>{# /row #}
+  </div>
+</section>
+
+{% endblock %}

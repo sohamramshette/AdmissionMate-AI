@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/cap_generator.css') }}" />
+{% endblock %}
+
+{% block content %}
+
+{# ── Page header ───────────────────────────────────────────── #}
+<div class="cap-page-header">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-lg-8">
+        <h1 class="mb-2">
+          <i class="bi bi-table me-2"></i>AI CAP Preference List
+        </h1>
+        <p class="mb-0">
+          Your personalised CAP preference list based on the submitted profile.
+        </p>
+      </div>
+      <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
+        <a href="{{ url_for('cap_generator') }}" class="btn btn-outline-light btn-sm px-3 py-2">
+          <i class="bi bi-arrow-left me-1"></i>Back to Generator
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+{# ── Submitted profile summary ─────────────────────────────── #}
+<div class="container py-4">
+  <div class="row g-4">
+
+    {# Profile card #}
+    <div class="col-12">
+      <div class="card border-0 shadow-sm rounded-3 mb-1">
+        <div class="card-header bg-white border-bottom d-flex align-items-center gap-2 py-3">
+          <i class="bi bi-person-vcard text-primary fs-5"></i>
+          <span class="fw-bold">Submitted Profile</span>
+          <span class="badge bg-success-subtle text-success ms-auto">Generated</span>
+        </div>
+        <div class="card-body">
+          <div class="row g-2" style="font-size:.875rem">
+
+            <div class="col-sm-6 col-lg-3">
+              <span class="text-muted d-block">CET Percentile</span>
+              <strong>{{ form_data.get('cet_percentile', '—') }}</strong>
+            </div>
+
+            <div class="col-sm-6 col-lg-3">
+              <span class="text-muted d-block">Category</span>
+              <strong>{{ form_data.get('category', '—') }}</strong>
+            </div>
+
+            <div class="col-sm-6 col-lg-3">
+              <span class="text-muted d-block">Gender</span>
+              <strong>{{ form_data.get('gender', '—') }}</strong>
+            </div>
+
+            <div class="col-sm-6 col-lg-3">
+              <span class="text-muted d-block">Home University</span>
+              <strong>{{ form_data.get('home_university', '—') }}</strong>
+            </div>
+
+            <div class="col-sm-6 col-lg-3">
+              <span class="text-muted d-block">Preferred Cities</span>
+              <strong>
+                {%- if form_data.get('preferred_cities') -%}
+                  {{ form_data['preferred_cities'] | join(', ') }}
+                {%- else -%}
+                  Any City
+                {%- endif -%}
+              </strong>
+            </div>
+
+            <div class="col-sm-6 col-lg-3">
+              <span class="text-muted d-block">Priority Style</span>
+              <strong>{{ form_data.get('priority_style', '—') }}</strong>
+            </div>
+
+            <div class="col-sm-6 col-lg-3">
+              <span class="text-muted d-block">Strategy</span>
+              <strong>{{ form_data.get('strategy', 'Balanced') }}</strong>
+            </div>
+
+            <div class="col-sm-6 col-lg-3">
+              <span class="text-muted d-block">Maximum Preferences</span>
+              <strong>{{ form_data.get('max_preferences', 'No limit') }}</strong>
+            </div>
+
+            <div class="col-sm-12 col-lg-6">
+              <span class="text-muted d-block">Branch Groups (ordered)</span>
+              <strong>{{ form_data.get('preferred_branch_groups', []) | join(', ') or '—' }}</strong>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {# ── CAP Preference table ──────────────────────────────── #}
+    <div class="col-12">
+      <div class="card border-0 shadow-sm rounded-3">
+        <div class="card-header bg-white border-bottom d-flex align-items-center gap-2 py-3">
+          <i class="bi bi-list-ol text-primary fs-5"></i>
+          <span class="fw-bold">CAP Preference List</span>
+          <span class="ms-auto text-muted" style="font-size:.8rem">
+            {{ preferences | length }} preference{{ 's' if preferences | length != 1 else '' }} generated
+          </span>
+        </div>
+
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" style="font-size:.875rem">
+              <thead class="table-light">
+                <tr>
+                  <th scope="col" style="width:56px" class="ps-4">#</th>
+                  <th scope="col">College</th>
+                  <th scope="col">Branch</th>
+                  <th scope="col" class="text-end pe-3">Cutoff</th>
+                  <th scope="col">Status</th>
+                  <th scope="col" class="text-end pe-3">Match Score</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% if preferences %}
+                  {% for p in preferences %}
+                  <tr>
+                    <td class="ps-4 text-muted fw-semibold">{{ p.preference }}</td>
+                    <td>
+                      <div class="fw-semibold" style="line-height:1.3">{{ p.college }}</div>
+                      <small class="text-muted">{{ p.city }} &middot; {{ p.type }}</small>
+                    </td>
+                    <td>
+                      <div>{{ p.branch }}</div>
+                      {% if p.branch_group %}
+                      <small class="text-muted">{{ p.branch_group }}</small>
+                      {% endif %}
+                    </td>
+                    <td class="text-end pe-3">{{ p.cutoff }}</td>
+                    <td>
+                      {% if p.status == 'Safe' %}
+                        <span class="badge bg-success-subtle text-success border border-success-subtle">Safe</span>
+                      {% elif p.status == 'Moderate' %}
+                        <span class="badge bg-warning-subtle text-warning border border-warning-subtle">Moderate</span>
+                      {% else %}
+                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle">Dream</span>
+                      {% endif %}
+                    </td>
+                    <td class="text-end pe-3 fw-semibold">{{ p.match_score }}</td>
+                  </tr>
+                  {% endfor %}
+                {% else %}
+                <tr>
+                  <td colspan="6" class="text-center py-5 text-muted">
+                    <i class="bi bi-search fs-2 d-block mb-2 opacity-50"></i>
+                    <span class="fw-semibold d-block mb-1" style="font-size:1rem">No matching preferences found.</span>
+                    <span style="font-size:.85rem">
+                      Try selecting different cities, branch groups, or a broader category.
+                    </span>
+                  </td>
+                </tr>
+                {% endif %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card-footer bg-white border-top d-flex justify-content-between align-items-center flex-wrap gap-2 py-3">
+          <span class="text-muted" style="font-size:.8rem">
+            <i class="bi bi-info-circle me-1"></i>
+            Showing {{ preferences | length }} of {{ preferences | length }} preferences.
+          </span>
+          <a href="{{ url_for('cap_generator') }}" class="btn btn-sm btn-outline-primary">
+            <i class="bi bi-arrow-counterclockwise me-1"></i>Start Over
+          </a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/chatbot.css') }}">
+{% endblock %}
+
+{% block content %}
+
+<div class="cb-page">
+  <div class="cb-container">
+
+    <!-- ── Chat card ──────────────────────────────────────── -->
+    <div class="cb-card">
+
+      <!-- Header -->
+      <div class="cb-header">
+        <div class="cb-header-avatar">
+          <i class="bi bi-robot"></i>
+        </div>
+        <div class="cb-header-info">
+          <div class="cb-header-name">
+            Admission AI
+            <span class="cb-online-dot" title="Online"></span>
+          </div>
+          <div class="cb-header-sub">IBM Watsonx Granite 4 &bull; Always online</div>
+        </div>
+        <button id="clear-chat-btn" class="cb-header-btn" title="Clear conversation" aria-label="Clear conversation">
+          <i class="bi bi-trash3"></i>
+          <span>Clear Chat</span>
+        </button>
+      </div>
+
+      <!-- Message area -->
+      <div id="chat-messages" class="cb-messages" role="log" aria-live="polite" aria-label="Chat messages">
+
+        <!-- Welcome message (server-rendered for instant display) -->
+        <div class="cb-msg-row cb-msg-row--bot">
+          <div class="cb-msg-avatar">
+            <i class="bi bi-robot"></i>
+          </div>
+          <div class="cb-msg-group">
+            <div class="cb-bubble cb-bubble--bot">
+              <p>👋 Hi there! I'm your <strong>College Admission Assistant</strong>.</p>
+              <p>I can help you with:</p>
+              <ul>
+                <li>Finding colleges based on your CET percentile</li>
+                <li>Understanding cutoff trends</li>
+                <li>Comparing branches and career paths</li>
+                <li>Scholarship and fee information</li>
+              </ul>
+              <p class="mb-0">What would you like to know? 🎓</p>
+              <button
+                class="cb-copy-btn"
+                title="Copy response"
+                aria-label="Copy response"
+                data-copy-text="Hi there! I'm your College Admission Assistant. I can help you with finding colleges based on your CET percentile, understanding cutoff trends, comparing branches and career paths, and scholarship and fee information."
+              >
+                <i class="bi bi-clipboard"></i> Copy
+              </button>
+            </div>
+            <div class="cb-timestamp">Just now</div>
+          </div>
+        </div>
+
+      </div><!-- /cb-messages -->
+
+      <!-- Input bar -->
+      <form id="chat-form" class="cb-form" autocomplete="off" novalidate>
+        <div class="cb-input-bar">
+          <textarea
+            id="chat-input"
+            rows="1"
+            placeholder="Ask about colleges, cutoffs, fees, branches…"
+            aria-label="Chat message input"
+          ></textarea>
+          <button id="send-btn" type="submit" class="cb-send-btn" title="Send (Enter)" aria-label="Send message">
+            <i class="bi bi-send-fill"></i>
+          </button>
+        </div>
+        <p class="cb-input-hint">
+          <kbd>Enter</kbd> to send &nbsp;&bull;&nbsp; <kbd>Shift+Enter</kbd> for new line
+        </p>
+      </form>
+
+    </div><!-- /cb-card -->
+
+    <!-- ── Suggested prompts ───────────────────────────────── -->
+    <div class="cb-prompts-section">
+      <p class="cb-prompts-label">
+        <i class="bi bi-lightbulb"></i> Suggested questions
+      </p>
+      <div id="prompt-chips" class="cb-chips">
+        {% set suggestions = [
+          ("Compare COEP and PICT",        "Compare COEP and PICT colleges — fees, placements, and rankings"),
+          ("95 percentile colleges",        "Suggest best engineering colleges for 95 percentile in OPEN category"),
+          ("Explain CAP Round",             "Explain the CAP Round process for Maharashtra engineering admissions"),
+          ("Best AI & DS colleges",         "Which colleges offer the best Artificial Intelligence and Data Science programs in Maharashtra?"),
+          ("VJTI CS cutoff",                "What is the last year cutoff for VJTI Computer Engineering?"),
+          ("Scholarship information",       "What scholarships are available for OBC students in Maharashtra engineering colleges?"),
+        ] %}
+        {% for label, msg in suggestions %}
+          <button class="cb-chip" data-msg="{{ msg }}" aria-label="Ask: {{ label }}">
+            {{ label }}
+          </button>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Model badge -->
+    <div class="cb-model-badge">
+      <i class="bi bi-cpu"></i>
+      IBM Watsonx &bull; Granite-4 &bull; AI Assistant
+    </div>
+
+  </div><!-- /cb-container -->
+</div><!-- /cb-page -->
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="{{ url_for('static', filename='js/chatbot.js') }}"></script>
+{% endblock %}

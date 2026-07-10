@@ -1,0 +1,348 @@
+{% extends "base.html" %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/cap_generator.css') }}" />
+{% endblock %}
+
+{% block content %}
+
+{# ── Page header ───────────────────────────────────────────── #}
+<div class="cap-page-header">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-lg-8">
+        <h1 class="mb-2">
+          <i class="bi bi-list-ol me-2"></i>AI CAP Preference Generator
+        </h1>
+        <p class="mb-0">
+          Fill in the 9-step wizard to build your personalised CAP preference list.
+          Your selections are reviewed before submission.
+        </p>
+      </div>
+      <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
+        <span class="badge bg-white text-primary fw-semibold px-3 py-2 fs-6">
+          <i class="bi bi-shield-check me-1"></i>Maharashtra CET
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+
+{# ── Wizard ────────────────────────────────────────────────── #}
+<div class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-xl-9 col-lg-10">
+
+      <div class="wizard-card" id="wizardCard">
+
+        {# ── Step indicator ──────────────────────────────────── #}
+        {# Labels: 1-Percentile 2-Category 3-Gender 4-University 5-Cities 6-Branches 7-Priority 8-Strategy 9-Review #}
+        <div class="step-indicator" id="stepIndicator">
+          {% set step_labels = ['Percentile','Category','Gender','University','Cities','Branches','Priority','Strategy','Review'] %}
+          {% for label in step_labels %}
+            {% set i = loop.index %}
+            <div class="step-dot-wrap">
+              <div class="step-dot" id="dot{{ i }}">{{ i }}</div>
+              <span class="step-label" id="lbl{{ i }}">{{ label }}</span>
+            </div>
+            {% if not loop.last %}
+              <div class="step-connector" id="conn{{ i }}"></div>
+            {% endif %}
+          {% endfor %}
+        </div>
+
+        {# ── Progress bar ────────────────────────────────────── #}
+        <div class="cap-progress-wrap">
+          <div class="cap-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100">
+            <div class="cap-progress-bar" id="capProgressBar" style="width:0%"></div>
+          </div>
+          <div class="d-flex justify-content-between mt-1">
+            <span class="text-muted" style="font-size:.75rem" id="stepCounter">Step 1 of 9</span>
+            <span class="text-muted" style="font-size:.75rem">Double-click a branch to move it</span>
+          </div>
+        </div>
+
+        {# ══════════════════════════════════════════════════════
+           FORM
+        ══════════════════════════════════════════════════════ #}
+        <form id="capForm" method="POST" action="{{ url_for('cap_generator') }}">
+
+          {# ═══ STEP 1 — CET Percentile ══════════════════════ #}
+          <div class="step-panel" id="step1">
+            <h4><i class="bi bi-percent me-2 text-primary"></i>CET Percentile</h4>
+            <p class="step-subtitle">Enter your Maharashtra CET percentile score (0 – 100).</p>
+
+            <label for="cetPercentile" class="form-label-cap">CET Percentile <span class="text-danger">*</span></label>
+            <input
+              type="number"
+              class="cap-input"
+              id="cetPercentile"
+              name="cet_percentile"
+              placeholder="e.g. 94.50"
+              min="0" max="100" step="0.01"
+              autocomplete="off"
+            />
+            <div id="err1" class="step-error"></div>
+          </div>
+
+          {# ═══ STEP 2 — Category ════════════════════════════ #}
+          <div class="step-panel" id="step2">
+            <h4><i class="bi bi-people me-2 text-primary"></i>Category</h4>
+            <p class="step-subtitle">Select the reservation category under which you applied for MHT-CET.</p>
+
+            <div class="pill-group" id="categoryGroup">
+              {% for cat in ['OPEN','OBC','SC','ST','NT','VJ','EWS','SBC'] %}
+              <input type="radio" name="category" id="cat_{{ cat }}" value="{{ cat }}" />
+              <label for="cat_{{ cat }}">{{ cat }}</label>
+              {% endfor %}
+            </div>
+            <div id="err2" class="step-error"></div>
+          </div>
+
+          {# ═══ STEP 3 — Gender ══════════════════════════════ #}
+          <div class="step-panel" id="step3">
+            <h4><i class="bi bi-gender-ambiguous me-2 text-primary"></i>Gender</h4>
+            <p class="step-subtitle">Select your gender for seat reservation purposes.</p>
+
+            <div class="pill-group" id="genderGroup">
+              {% for g in ['Male','Female'] %}
+              <input type="radio" name="gender" id="gen_{{ g }}" value="{{ g }}" />
+              <label for="gen_{{ g }}">{{ g }}</label>
+              {% endfor %}
+            </div>
+            <div id="err3" class="step-error"></div>
+          </div>
+
+          {# ═══ STEP 4 — Home University ═════════════════════ #}
+          <div class="step-panel" id="step4">
+            <h4><i class="bi bi-building me-2 text-primary"></i>Home University</h4>
+            <p class="step-subtitle">Select the university under which your college falls (or the nearest one).</p>
+
+            <label for="homeUniversity" class="form-label-cap">Home University <span class="text-danger">*</span></label>
+            <select class="cap-input" id="homeUniversity" name="home_university">
+              <option value="">— Select university —</option>
+              {% for uni in universities %}
+              <option value="{{ uni }}">{{ uni }}</option>
+              {% endfor %}
+            </select>
+            <div id="err4" class="step-error"></div>
+          </div>
+
+          {# ═══ STEP 5 — Preferred Cities ════════════════════ #}
+          <div class="step-panel" id="step5">
+            <h4><i class="bi bi-geo-alt me-2 text-primary"></i>Preferred Cities</h4>
+            <p class="step-subtitle">
+              Choose the cities where you would like to study.
+              Select <strong>Any City</strong> to include all available cities.
+            </p>
+
+            <div class="city-grid" id="cityGrid">
+              {# "Any City" tile — always first #}
+              <input type="checkbox" class="city-check" id="city_any" value="__any__"
+                     onchange="handleAnyCityToggle(this)" />
+              <label class="city-tile city-tile-any" for="city_any">
+                <span class="check-icon"><i class="bi bi-check2"></i></span>
+                Any City
+              </label>
+
+              {% for city in cities %}
+              <input type="checkbox" class="city-check city-specific" id="city_{{ city|replace(' ','_') }}"
+                     name="preferred_cities" value="{{ city }}" />
+              <label class="city-tile" for="city_{{ city|replace(' ','_') }}">
+                <span class="check-icon"><i class="bi bi-check2"></i></span>
+                {{ city }}
+              </label>
+              {% endfor %}
+            </div>
+            <div id="err5" class="step-error"></div>
+          </div>
+
+          {# ═══ STEP 6 — Preferred Branch Groups ═════════════ #}
+          <div class="step-panel" id="step6">
+            <h4><i class="bi bi-diagram-3 me-2 text-primary"></i>Preferred Branches</h4>
+            <p class="step-subtitle">
+              Move branch groups to the <strong>Selected</strong> list, then order them by priority.
+              <br><small class="text-muted">Double-click an item to move it, or select and use the arrow buttons.</small>
+            </p>
+
+            <div class="dual-list-wrap">
+              {# Available branch groups #}
+              <div class="dual-list-box">
+                <div class="list-header"><i class="bi bi-list-ul me-1"></i>Available Groups</div>
+                <select multiple class="dual-list-select" id="availableBranches">
+                  {% for group in branch_groups %}
+                  <option value="{{ group }}">{{ group }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+
+              {# Arrow controls #}
+              <div class="dual-arrow-col">
+                <button type="button" class="btn btn-sm btn-outline-primary" id="btnAddBranch" title="Add">
+                  <i class="bi bi-chevron-right"></i>
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-secondary" id="btnRemoveBranch" title="Remove">
+                  <i class="bi bi-chevron-left"></i>
+                </button>
+              </div>
+
+              {# Selected branch groups #}
+              <div class="dual-list-box">
+                <div class="list-header"><i class="bi bi-check2-square me-1"></i>Selected Groups</div>
+                <select multiple class="dual-list-select" id="selectedBranches" name="selected_branches"></select>
+              </div>
+            </div>
+
+            {# Up / Down / Remove order controls #}
+            <div class="d-flex gap-2 mt-2 flex-wrap">
+              <button type="button" class="btn btn-sm btn-outline-secondary" id="btnMoveUp">
+                <i class="bi bi-arrow-up me-1"></i>Move Up
+              </button>
+              <button type="button" class="btn btn-sm btn-outline-secondary" id="btnMoveDown">
+                <i class="bi bi-arrow-down me-1"></i>Move Down
+              </button>
+              <button type="button" class="btn btn-sm btn-outline-danger"
+                onclick="document.getElementById('btnRemoveBranch').click()">
+                <i class="bi bi-x-lg me-1"></i>Remove
+              </button>
+            </div>
+
+            {# Hidden field carries the ordered branch group list on submit #}
+            <input type="hidden" name="selected_branches_ordered" id="selectedBranchesHidden" />
+
+            <div id="err6" class="step-error"></div>
+          </div>
+
+          {# ═══ STEP 7 — Priority Style ══════════════════════ #}
+          <div class="step-panel" id="step7">
+            <h4><i class="bi bi-sort-down me-2 text-primary"></i>Priority Style</h4>
+            <p class="step-subtitle">How should preferences be ordered — by college reputation or by branch group?</p>
+
+            <div class="priority-group">
+              <span>
+                <input type="radio" class="priority-radio" name="priority_style" id="ps_college" value="College First" />
+                <label class="priority-card" for="ps_college">
+                  <span class="p-icon"><i class="bi bi-bank2"></i></span>
+                  <span class="p-title">College First</span>
+                  <span class="p-desc">Prioritise top-ranked colleges regardless of branch group.</span>
+                </label>
+              </span>
+              <span>
+                <input type="radio" class="priority-radio" name="priority_style" id="ps_branch" value="Branch First" />
+                <label class="priority-card" for="ps_branch">
+                  <span class="p-icon"><i class="bi bi-cpu"></i></span>
+                  <span class="p-title">Branch First</span>
+                  <span class="p-desc">Prioritise your preferred branch groups, then sort by college.</span>
+                </label>
+              </span>
+            </div>
+
+            {# Maximum Preferences — optional, compact #}
+            <div class="mt-4 pt-3" style="border-top:1px solid #f1f5f9">
+              <label class="form-label-cap">
+                Maximum Preferences
+                <span class="text-muted fw-normal ms-1" style="font-size:.8rem">(optional — leave unselected for no limit)</span>
+              </label>
+              <div class="pill-group mt-1">
+                {% for n in [50, 75, 100] %}
+                <input type="radio" name="max_preferences" id="mp_{{ n }}" value="{{ n }}" />
+                <label for="mp_{{ n }}">{{ n }}</label>
+                {% endfor %}
+              </div>
+            </div>
+
+            <div id="err7" class="step-error"></div>
+          </div>
+
+          {# ═══ STEP 8 — Strategy ════════════════════════════ #}
+          <div class="step-panel" id="step8">
+            <h4><i class="bi bi-bullseye me-2 text-primary"></i>Strategy</h4>
+            <p class="step-subtitle">
+              Choose how you want to approach your CAP preferences.
+            </p>
+
+            <div class="strategy-group">
+              <span>
+                <input type="radio" class="strategy-radio" name="strategy" id="st_balanced" value="Balanced" />
+                <label class="strategy-card" for="st_balanced">
+                  <span class="p-icon"><i class="bi bi-arrows-angle-contract"></i></span>
+                  <span class="p-title">Balanced</span>
+                  <span class="p-desc">Mix of Safe, Moderate, and Dream colleges for realistic outcomes.</span>
+                </label>
+              </span>
+              <span>
+                <input type="radio" class="strategy-radio" name="strategy" id="st_aggressive" value="Aggressive" />
+                <label class="strategy-card" for="st_aggressive">
+                  <span class="p-icon"><i class="bi bi-lightning-charge"></i></span>
+                  <span class="p-title">Aggressive</span>
+                  <span class="p-desc">Reach for top colleges and high-cutoff branches first.</span>
+                </label>
+              </span>
+              <span>
+                <input type="radio" class="strategy-radio" name="strategy" id="st_safe" value="Safe" />
+                <label class="strategy-card" for="st_safe">
+                  <span class="p-icon"><i class="bi bi-shield-check"></i></span>
+                  <span class="p-title">Safe</span>
+                  <span class="p-desc">Only colleges where your percentile comfortably exceeds the cutoff.</span>
+                </label>
+              </span>
+            </div>
+
+            <div id="err8" class="step-error"></div>
+          </div>
+
+          {# ═══ STEP 9 — Review & Generate ═══════════════════ #}
+          <div class="step-panel" id="step9">
+            <h4><i class="bi bi-clipboard-check me-2 text-primary"></i>Review &amp; Generate</h4>
+            <p class="step-subtitle">Confirm your selections below, then click <strong>Generate AI CAP List</strong>.</p>
+
+            <div class="table-responsive rounded-3 border" style="font-size:.9rem">
+              <table class="table table-hover mb-0 review-table">
+                <tbody>
+                  <tr><td>CET Percentile</td><td id="rv_percentile">—</td></tr>
+                  <tr><td>Category</td><td id="rv_category">—</td></tr>
+                  <tr><td>Gender</td><td id="rv_gender">—</td></tr>
+                  <tr><td>Home University</td><td id="rv_university">—</td></tr>
+                  <tr><td>Preferred Cities</td><td id="rv_cities">—</td></tr>
+                  <tr><td>Preferred Branch Groups (ordered)</td><td id="rv_branches">—</td></tr>
+                  <tr><td>Priority Style</td><td id="rv_priority">—</td></tr>
+                  <tr><td>Strategy</td><td id="rv_strategy">—</td></tr>
+                  <tr><td>Maximum Preferences</td><td id="rv_max_pref">—</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="alert alert-info d-flex align-items-start gap-2 mt-3 rounded-3 border-0" role="alert">
+              <i class="bi bi-info-circle-fill flex-shrink-0 mt-1"></i>
+              <span>
+                Clicking <strong>Generate AI CAP List</strong> will submit your preferences to the server.
+                The engine will analyse your profile and produce a ranked preference list.
+              </span>
+            </div>
+          </div>
+
+        </form>{# /capForm #}
+
+        {# ── Wizard navigation ─────────────────────────────── #}
+        <div class="wizard-nav">
+          <button type="button" class="btn-cap-prev" id="btnPrev">
+            <i class="bi bi-chevron-left me-1"></i>Previous
+          </button>
+          <button type="button" class="btn-cap-next" id="btnNext">
+            Next<i class="bi bi-chevron-right ms-1"></i>
+          </button>
+          <button type="submit" form="capForm" class="btn-cap-generate" id="btnGenerate" style="display:none">
+            <i class="bi bi-stars me-2"></i>Generate AI CAP List
+          </button>
+        </div>
+
+      </div>{# /wizard-card #}
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/cap_generator.js') }}"></script>
+{% endblock %}

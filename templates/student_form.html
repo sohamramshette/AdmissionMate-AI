@@ -1,0 +1,198 @@
+{# ============================================================
+   student_form.html — Student Details Form
+   Collects: name, CET percentile, category, branch, city
+   ============================================================ #}
+{% extends "base.html" %}
+
+{% block content %}
+
+{# ── Page banner #}
+<div class="page-banner">
+  <div class="container">
+    <div class="hero-badge mb-3">
+      <i class="bi bi-search me-1"></i> Step 1 of 2
+    </div>
+    <h1><i class="bi bi-person-lines-fill me-2"></i>Tell Us About Yourself</h1>
+    <p class="mb-0">We'll use these details to find the best-matched colleges for you.</p>
+  </div>
+</div>
+
+{# ── Form Section #}
+<section class="py-5">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-lg-7 col-xl-6">
+
+        <div class="form-card fade-in-up">
+          <h4 class="fw-800 mb-1">Student Profile</h4>
+          <p class="text-muted small mb-4">All fields are required. Your data is not stored permanently.</p>
+
+          <form id="student-form"
+                method="POST"
+                action="{{ url_for('find_colleges') }}"
+                novalidate>
+
+            {# ── Full Name ──────────────────────────────────── #}
+            <div class="mb-4">
+              <label class="form-label" for="name">
+                <i class="bi bi-person me-1 text-primary"></i>Full Name
+              </label>
+              <input
+                type="text"
+                id="name"
+                name="name"
+                class="form-control"
+                placeholder="e.g. Rahul Sharma"
+                value="{{ student_data.name if student_data else '' }}"
+                required
+                minlength="2"
+                maxlength="80"
+              />
+              <div class="invalid-feedback">Please enter your full name.</div>
+            </div>
+
+            {# ── CET Percentile ─────────────────────────────── #}
+            <div class="mb-4">
+              <label class="form-label" for="cet_percentile">
+                <i class="bi bi-percent me-1 text-primary"></i>MHT-CET Percentile
+              </label>
+              <input
+                type="number"
+                id="cet_percentile"
+                name="cet_percentile"
+                class="form-control"
+                placeholder="e.g. 92.50"
+                value="{{ student_data.cet_percentile if student_data else '' }}"
+                min="0"
+                max="100"
+                step="0.01"
+                required
+              />
+              <div class="form-text text-muted">
+                <i class="bi bi-info-circle me-1"></i>Enter your overall PCM or PCB percentile (0–100).
+              </div>
+              <div class="invalid-feedback">Enter a valid percentile between 0 and 100.</div>
+            </div>
+
+            {# ── Category ───────────────────────────────────── #}
+            <div class="mb-4">
+              <label class="form-label" for="category">
+                <i class="bi bi-people me-1 text-primary"></i>Reservation Category
+              </label>
+              <select id="category" name="category" class="form-select" required>
+                <option value="" disabled {% if not student_data %}selected{% endif %}>
+                  — Select category —
+                </option>
+                {% set categories = [
+                  ("OPEN",   "OPEN / General"),
+                  ("OBC",    "OBC — Other Backward Class"),
+                  ("SC",     "SC — Scheduled Caste"),
+                  ("ST",     "ST — Scheduled Tribe"),
+                  ("NT1",    "NT1 — Nomadic Tribe 1 (NT-B)"),
+                  ("NT2",    "NT2 — Nomadic Tribe 2 (NT-C)"),
+                  ("NT3",    "NT3 — Nomadic Tribe 3 (NT-D)"),
+                  ("VJ",     "VJ / DT — Vimukta Jati"),
+                  ("SEBC",   "SEBC — Socially & Educationally Backward Class"),
+                  ("EWS",    "EWS — Economically Weaker Section"),
+                  ("PWD",    "PWD — Person with Disability"),
+                ] %}
+                {% for val, label in categories %}
+                  <option value="{{ val }}"
+                    {% if student_data and student_data.category == val %}selected{% endif %}>
+                    {{ label }}
+                  </option>
+                {% endfor %}
+              </select>
+              <div class="invalid-feedback">Please select your reservation category.</div>
+            </div>
+
+            {# ── Preferred Branch ───────────────────────────── #}
+            <div class="mb-4">
+              <label class="form-label" for="preferred_branch">
+                <i class="bi bi-tools me-1 text-primary"></i>Preferred Branch / Stream
+              </label>
+              <select id="preferred_branch" name="preferred_branch" class="form-select" required>
+                <option value="" disabled {% if not student_data %}selected{% endif %}>
+                  — Select branch —
+                </option>
+                {% set branches = [
+                  ("Computer Engineering",         "Computer Engineering"),
+                  ("Information Technology",        "Information Technology"),
+                  ("Electronics & Telecommunication","Electronics & Telecommunication"),
+                  ("Mechanical Engineering",        "Mechanical Engineering"),
+                  ("Civil Engineering",             "Civil Engineering"),
+                  ("Electrical Engineering",        "Electrical Engineering"),
+                  ("Artificial Intelligence & DS",  "Artificial Intelligence & Data Science"),
+                  ("AIDS",                          "AI & Machine Learning"),
+                  ("Chemical Engineering",          "Chemical Engineering"),
+                  ("Instrumentation Engineering",   "Instrumentation Engineering"),
+                  ("Production Engineering",        "Production Engineering"),
+                  ("Any",                           "Any / Open to all"),
+                ] %}
+                {% for val, label in branches %}
+                  <option value="{{ val }}"
+                    {% if student_data and student_data.preferred_branch == val %}selected{% endif %}>
+                    {{ label }}
+                  </option>
+                {% endfor %}
+              </select>
+              <div class="invalid-feedback">Please select your preferred branch.</div>
+            </div>
+
+            {# ── Preferred City ─────────────────────────────── #}
+            <div class="mb-4">
+              <label class="form-label" for="preferred_city">
+                <i class="bi bi-geo-alt me-1 text-primary"></i>Preferred City / Location
+              </label>
+              <select id="preferred_city" name="preferred_city" class="form-select" required>
+                <option value="" disabled {% if not student_data %}selected{% endif %}>
+                  — Select city —
+                </option>
+                {% set cities = [
+                  ("Mumbai",     "Mumbai"),
+                  ("Pune",       "Pune"),
+                  ("Nagpur",     "Nagpur"),
+                  ("Nashik",     "Nashik"),
+                  ("Aurangabad", "Aurangabad (Chhatrapati Sambhajinagar)"),
+                  ("Kolhapur",   "Kolhapur"),
+                  ("Solapur",    "Solapur"),
+                  ("Amravati",   "Amravati"),
+                  ("Thane",      "Thane"),
+                  ("Navi Mumbai","Navi Mumbai"),
+                  ("Pimpri",     "Pimpri-Chinchwad"),
+                  ("Latur",      "Latur"),
+                  ("Jalgaon",    "Jalgaon"),
+                  ("Any",        "Any / Anywhere in Maharashtra"),
+                ] %}
+                {% for val, label in cities %}
+                  <option value="{{ val }}"
+                    {% if student_data and student_data.preferred_city == val %}selected{% endif %}>
+                    {{ label }}
+                  </option>
+                {% endfor %}
+              </select>
+              <div class="invalid-feedback">Please select a preferred city.</div>
+            </div>
+
+            {# ── Submit ─────────────────────────────────────── #}
+            <div class="d-grid mt-4">
+              <button type="submit" class="btn btn-primary-custom py-3 fs-6">
+                <i class="bi bi-stars me-2"></i>Find My Colleges →
+              </button>
+            </div>
+
+          </form>
+
+          {# Info note #}
+          <p class="text-center text-muted mt-3 small">
+            <i class="bi bi-lock me-1"></i>
+            Your information is only used to generate recommendations and is never stored.
+          </p>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+{% endblock %}

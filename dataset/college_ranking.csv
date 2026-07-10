@@ -1,0 +1,51 @@
+College_ID,College_Name,AI_Ranking_Score,NIRF_Rank_Band,Reputation_Tier
+C001,"COEP Technological University, Pune",76.0,151-200,B+
+C002,"Veermata Jijabai Technological Institute (VJTI), Mumbai",64.0,101-150,B
+C003,"Sardar Patel College of Engineering, Mumbai",84.2,151-200,A
+C004,"Pune Institute of Computer Technology (PICT), Pune",86.9,151-200,A
+C005,"Vishwakarma Institute of Technology, Pune",66.7,Unranked,B
+C006,"Walchand College of Engineering, Sangli",96.7,101-150,A+
+C007,"Government College of Engineering, Pune",83.4,Unranked,A
+C008,"Government College of Engineering, Aurangabad",89.4,151-200,A
+C009,"Government College of Engineering, Amravati",76.6,Unranked,B+
+C010,"Government College of Engineering, Karad",70.2,51-100,B+
+C011,"Government College of Engineering and Research, Avasari",91.6,Top 50,A+
+C012,"Cummins College of Engineering for Women, Pune",70.6,151-200,B+
+C013,"Maharashtra Institute of Technology (MIT), Pune",69.3,151-200,B
+C014,"Sinhgad College of Engineering, Pune",81.7,151-200,A
+C015,"D.Y. Patil College of Engineering, Pune",72.8,151-200,B+
+C016,"K.J. Somaiya College of Engineering, Mumbai",92.3,51-100,A+
+C017,"Thadomal Shahani Engineering College, Mumbai",78.5,101-150,B+
+C018,"Fr. Conceicao Rodrigues College of Engineering, Mumbai",90.3,101-150,A+
+C019,"Vidyalankar Institute of Technology, Mumbai",70.6,Unranked,B+
+C020,"Rajiv Gandhi Institute of Technology, Mumbai",86.6,101-150,A
+C021,"Shah and Anchor Kutchhi Engineering College, Mumbai",81.1,Unranked,A
+C022,"Ramrao Adik Institute of Technology, Navi Mumbai",96.0,Top 50,A+
+C023,"Datta Meghe College of Engineering, Navi Mumbai",69.2,151-200,B
+C024,"Vidyavardhini's College of Engineering, Vasai",78.6,51-100,B+
+C025,"St. Francis Institute of Technology, Mumbai",86.2,151-200,A
+C026,"Xavier Institute of Engineering, Mumbai",77.0,Top 50,B+
+C027,"Bharati Vidyapeeth College of Engineering, Pune",63.5,51-100,B
+C028,"Army Institute of Technology, Pune",75.4,51-100,B+
+C029,"Vishwakarma Institute of Information Technology, Pune",71.6,Unranked,B+
+C030,"Sinhgad Academy of Engineering, Pune",74.0,Unranked,B+
+C031,"Zeal College of Engineering and Research, Pune",80.2,151-200,A
+C032,"JSPM's Rajarshi Shahu College of Engineering, Pune",97.9,Unranked,A+
+C033,"MKSSS's Cummins College of Engineering, Pune",72.6,151-200,B+
+C034,"Shri Ramdeobaba College of Engineering, Nagpur",70.3,101-150,B+
+C035,"Yeshwantrao Chavan College of Engineering, Nagpur",68.8,51-100,B
+C036,"Government College of Engineering, Nagpur",72.0,Unranked,B+
+C037,"Priyadarshini College of Engineering, Nagpur",96.1,51-100,A+
+C038,"St. Vincent Pallotti College of Engineering, Nagpur",67.3,151-200,B
+C039,"Shri Guru Gobind Singhji Institute of Engineering and Technology, Nanded",70.5,Unranked,B+
+C040,"Government College of Engineering, Jalgaon",97.1,Unranked,A+
+C041,"SSBT's College of Engineering and Technology, Jalgaon",82.7,Top 50,A
+C042,"K K Wagh Institute of Engineering Education and Research, Nashik",91.6,101-150,A+
+C043,"Sandip Institute of Technology and Research Centre, Nashik",68.6,51-100,B
+C044,"MET's Bhujbal Knowledge City, Nashik",71.5,Unranked,B+
+C045,"Rajarambapu Institute of Technology, Sangli",64.8,Top 50,B
+C046,"Dr. J.J. Magdum College of Engineering, Jaysingpur",97.0,Unranked,A+
+C047,"Kolhapur Institute of Technology's College of Engineering, Kolhapur",71.1,51-100,B+
+C048,"Shivaji University's Department of Technology, Kolhapur",84.2,151-200,A
+C049,"PES Modern College of Engineering, Pune",63.9,Top 50,B
+C050,"Terna Engineering College, Navi Mumbai",81.8,151-200,A

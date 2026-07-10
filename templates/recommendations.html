@@ -1,0 +1,199 @@
+{# ============================================================
+   recommendations.html — AI-generated college recommendation cards
+   Shows placeholder cards until the recommendation service is wired
+   ============================================================ #}
+{% extends "base.html" %}
+
+{% block content %}
+
+{# ── Page banner #}
+<div class="page-banner">
+  <div class="container">
+    {% if student_data and student_data.name %}
+      <div class="hero-badge mb-3">
+        <i class="bi bi-stars me-1"></i>
+        Personalised for {{ student_data.name }}
+      </div>
+      <h1><i class="bi bi-list-check me-2"></i>Your College Recommendations</h1>
+      <p class="mb-0">
+        Based on your {{ student_data.cet_percentile }}% CET percentile &middot;
+        {{ student_data.category }} &middot;
+        {{ student_data.preferred_branch }} &middot;
+        {{ student_data.preferred_city }}
+      </p>
+    {% else %}
+      <h1><i class="bi bi-list-check me-2"></i>College Recommendations</h1>
+      <p class="mb-0">AI-curated recommendations based on your profile.</p>
+    {% endif %}
+  </div>
+</div>
+
+<section class="py-5">
+  <div class="container">
+
+    {# ── Top action bar ─────────────────────────────────── #}
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+      <div>
+        <span class="section-tag me-2">Results</span>
+        <span class="text-muted small">
+          {% if colleges %}
+            {{ colleges | length }} colleges found
+          {% else %}
+            Showing placeholder results
+          {% endif %}
+        </span>
+      </div>
+      <div class="d-flex gap-2">
+        <a href="{{ url_for('find_colleges') }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+          <i class="bi bi-arrow-left me-1"></i>Edit Profile
+        </a>
+        <a href="{{ url_for('compare') }}" class="btn btn-outline-primary btn-sm rounded-pill px-3">
+          <i class="bi bi-bar-chart-steps me-1"></i>Compare
+        </a>
+      </div>
+    </div>
+
+    {% if summary %}
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-body">
+        <h5 class="mb-3">
+            🤖 AI Admission Advisor
+        </h5>
+
+        <p class="mb-0">
+            {{ summary }}
+        </p>
+    </div>
+</div>
+{% endif %}
+
+
+    {# ── College Cards ──────────────────────────────────── #}
+    {% if colleges %}
+      {# Live data loop — will render when the service is wired #}
+      <div class="row g-4">
+        {% for college in colleges %}
+          <div class="col-md-6 col-lg-4 fade-in-up">
+            <div class="college-card">
+              <div class="college-card-header">
+                <div class="d-flex justify-content-between align-items-start">
+                  <h5 class="fw-700 mb-1">{{ college.name }}</h5>
+                  <span class="match-badge">{{ college.match_score }}% Match</span>
+                </div>
+                <p class="mb-0 small" style="opacity:.85">
+                  <i class="bi bi-geo-alt me-1"></i>{{ college.city }}
+                </p>
+              </div>
+              <div class="p-4">
+                <div class="row g-2 mb-3 text-center small">
+                  <div class="col-4">
+                    <div class="fw-700 text-primary">{{ college.cutoff }}</div>
+                    <div class="text-muted">Cutoff %ile</div>
+                  </div>
+                  <div class="col-4">
+                    <div class="fw-700 text-primary">{{ college.annual_fees }}</div>
+                    <div class="text-muted">Annual Fees</div>
+                  </div>
+                  <div class="col-4">
+                    <div class="fw-700 text-primary">{{ college.naac_grade }}</div>
+                    <div class="text-muted">NAAC Grade</div>
+                  </div>
+                </div>
+                <p class="small text-muted mb-3">
+                  <i class="bi bi-tools me-1"></i>{{ college.branch }}
+                </p>
+                <div class="d-flex gap-2">
+                  <a href="{{ url_for('college_details', college_id=college.college_id) }}"
+                     class="btn btn-primary-custom btn-sm flex-fill">
+                    <i class="bi bi-eye me-1"></i>View Details
+                  </a>
+                  <a href="{{ url_for('compare') }}"
+                     class="btn btn-outline-primary btn-sm px-3" title="Add to Compare">
+                    <i class="bi bi-plus-lg"></i>
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+
+    {% else %}
+      {# ── Placeholder skeleton cards (UI preview) ──────── #}
+      <div class="row g-4">
+        {% set placeholder_colleges = [
+          {"name": "K.J. Somaiya College of Engineering",  "city": "Mumbai",  "cutoff": "94.2", "fees": "₹1.8L", "naac": "A+", "branch": "Computer Engineering",   "match": 97},
+          {"name": "VJTI Mumbai",                           "city": "Mumbai",  "cutoff": "97.5", "fees": "₹80K",  "naac": "A+", "branch": "Computer Engineering",   "match": 94},
+          {"name": "College of Engineering Pune (COEP)",   "city": "Pune",    "cutoff": "98.1", "fees": "₹1.1L", "naac": "A+", "branch": "Information Technology",  "match": 91},
+          {"name": "PICT Pune",                             "city": "Pune",    "cutoff": "93.7", "fees": "₹1.4L", "naac": "A",  "branch": "Computer Engineering",   "match": 89},
+          {"name": "SPIT Mumbai",                           "city": "Mumbai",  "cutoff": "95.0", "fees": "₹1.2L", "naac": "A",  "branch": "Information Technology",  "match": 87},
+          {"name": "Walchand College of Engineering",       "city": "Solapur", "cutoff": "89.4", "fees": "₹95K",  "naac": "A",  "branch": "Electronics & TC",        "match": 84},
+        ] %}
+
+        {% for p in placeholder_colleges %}
+          <div class="col-md-6 col-lg-4 fade-in-up" data-delay="{{ (loop.index0 * 0.08) | round(2) }}" style="animation-delay:var(--card-delay, 0s)">
+            <div class="college-card position-relative">
+              {# Placeholder ribbon #}
+              <span class="position-absolute top-0 start-0 badge text-bg-warning"
+                    style="font-size:.65rem;border-radius:0.75rem 0 0.5rem 0;padding:.3rem .6rem">
+                Preview
+              </span>
+              <div class="college-card-header">
+                <div class="d-flex justify-content-between align-items-start">
+                  <h5 class="fw-700 mb-1" style="font-size:.98rem">{{ p.name }}</h5>
+                  <span class="match-badge">{{ p.match }}% Match</span>
+                </div>
+                <p class="mb-0 small" style="opacity:.85">
+                  <i class="bi bi-geo-alt me-1"></i>{{ p.city }}
+                </p>
+              </div>
+              <div class="p-4">
+                <div class="row g-2 mb-3 text-center small">
+                  <div class="col-4">
+                    <div class="fw-700 text-primary">{{ p.cutoff }}</div>
+                    <div class="text-muted">Cutoff %ile</div>
+                  </div>
+                  <div class="col-4">
+                    <div class="fw-700 text-primary">{{ p.fees }}</div>
+                    <div class="text-muted">Annual Fees</div>
+                  </div>
+                  <div class="col-4">
+                    <div class="fw-700 text-primary">{{ p.naac }}</div>
+                    <div class="text-muted">NAAC Grade</div>
+                  </div>
+                </div>
+                <p class="small text-muted mb-3">
+                  <i class="bi bi-tools me-1"></i>{{ p.branch }}
+                </p>
+                <div class="d-flex gap-2">
+                  <button class="btn btn-primary-custom btn-sm flex-fill" disabled>
+                    View Details
+                  </button>
+                  <button class="btn btn-outline-primary btn-sm px-3" title="Add to Compare" disabled>
+                    <i class="bi bi-plus-lg"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+
+      <p class="text-center text-muted mt-5 small">
+        <i class="bi bi-info-circle me-1"></i>
+        These are sample cards. Connect the recommendation service to see live results.
+      </p>
+    {% endif %}
+
+  </div>
+</section>
+
+{% block scripts %}
+<script>
+  document.querySelectorAll('[data-delay]').forEach(function(el) {
+    el.style.setProperty('--card-delay', el.dataset.delay + 's');
+  });
+</script>
+{% endblock %}
+
+{% endblock %}
