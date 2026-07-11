@@ -1,0 +1,16 @@
+{
+  "name": "AdmissionMate AI",
+  "description": "AI-powered College Admission Assistant built using Flask.",
+  "repository": "https://github.com/sohamramshette/AdmissionMate-AI",
+  "logo": "",
+  "keywords": [
+    "python",
+    "flask",
+    "ai",
+    "college",
+    "admission"
+  ],
+  "env": {},
+  "formation": {},
+  "scripts": {}
+}
