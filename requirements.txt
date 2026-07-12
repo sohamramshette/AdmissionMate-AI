@@ -11,11 +11,10 @@ python-dotenv==1.0.1
 # IBM Watsonx AI SDK (configuration prepared; integration pending)
 ibm-watsonx-ai==1.5.14
 
-# HTTP client (used internally by Watsonx SDK)
-requests==2.32.3
+
 
 # Data handling for the college dataset
-pandas==2.2.2
+pandas==2.2.3
 
 # Gunicorn WSGI server for production deployment
 gunicorn==22.0.0
