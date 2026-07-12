@@ -223,6 +223,13 @@ def create_app(config_class=Config):
 # ---------------------------------------------------------------------------
 # Entry-point
 # ---------------------------------------------------------------------------
+import os
+
+app = create_app()
+
 if __name__ == "__main__":
-    app = create_app()
-    app.run(debug=app.config.get("DEBUG", True))
+    app.run(
+        host="0.0.0.0",
+        port=int(os.environ.get("PORT", 5000)),
+        debug=app.config.get("DEBUG", True)
+    )
