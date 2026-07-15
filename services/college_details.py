@@ -33,6 +33,7 @@ from services.dataset import (
     COL_CUTOFF, COL_FEES, COL_NAAC, COL_NBA,
     COL_PLACEMENT, COL_INTAKE, COL_ESTD,
     COL_CITY, COL_DISTRICT, COL_UNIV, COL_TYPE,
+    COL_HOME_UNIV,
 )
 from services.watsonx import chat
 
@@ -48,6 +49,13 @@ _SUMMARY_SYSTEM = (
     "Use ONLY the supplied dataset information — do NOT invent any figures.\n"
     "Each bullet must be one sentence. Start each line with a dash (-).\n"
     "Cover: academic reputation, branches offered, fees, placements, and location/type."
+)
+
+_QUICKFACT_SYSTEM = (
+    "You are an AI College Admission Counsellor.\n"
+    "Write exactly ONE sentence (max 25 words) summarising this college.\n"
+    "Use ONLY the supplied data. Do NOT invent figures.\n"
+    "Tone: factual, helpful. No marketing language."
 )
 
 
@@ -138,7 +146,68 @@ def get_college_profile(college_id: str) -> dict[str, Any] | None:
     # Ownership label derived from the "type" column
     ownership_label = _derive_ownership(str(primary.get(COL_TYPE, "")))
 
-    # 6. Generate the AI summary
+    # Home university (the real column)
+    home_university: str = str(primary.get(COL_HOME_UNIV, "")).strip()
+
+    # Aggregate intake across all sibling rows
+    total_intake: int = int(siblings[COL_INTAKE].fillna(0).sum())
+
+    # Cutoff range (OPEN category for the headline figure, else overall)
+    open_rows = siblings[siblings[COL_CATEGORY].str.upper() == "OPEN"]
+    if not open_rows.empty:
+        open_cutoff_display = f"{float(open_rows[COL_CUTOFF].max()):.2f} (OPEN)"
+    else:
+        cutoff_vals = siblings[COL_CUTOFF].dropna()
+        open_cutoff_display = f"{float(cutoff_vals.max()):.2f}" if not cutoff_vals.empty else ""
+
+    # 6. Build quick-facts list — only include rows where value is meaningful
+    quick_facts: list[dict[str, Any]] = []
+
+    def _add_fact(icon: str, label: str, value: str, color: str = "") -> None:
+        """Append a fact only when value is non-empty and not a sentinel."""
+        v = value.strip() if value else ""
+        if v and v.lower() not in ("n/a", "0", "none", "not available", "nan", ""):
+            quick_facts.append({"icon": icon, "label": label, "value": v, "color": color})
+
+    # Fields from the real dataset
+    _add_fact("bi-geo-alt-fill",      "Location",         str(primary.get(COL_CITY, "")) + ", Maharashtra",        "text-primary")
+    _add_fact("bi-mortarboard-fill",  "University",       home_university,                                          "text-indigo")
+    _add_fact("bi-cash-coin",         "Annual Fees",      fees_display,                                             "text-success")
+    _add_fact("bi-people-fill",       "Total Intake",     f"{total_intake} seats" if total_intake else "",          "text-sky")
+    _add_fact("bi-percent",           "OPEN Cutoff",      open_cutoff_display,                                      "text-amber")
+    _add_fact("bi-diagram-3-fill",    "Branches Offered", f"{len(all_branch_names)} branches",                      "text-primary")
+
+    # Fields from legacy columns (present only when the dataset has them)
+    naac = str(primary.get(COL_NAAC, "")).strip()
+    if naac and naac not in ("N/A", "nan", ""):
+        _add_fact("bi-award-fill",        "NAAC Grade",       naac,                                                 "text-success")
+
+    nba = str(primary.get(COL_NBA, "")).strip()
+    if nba.lower() == "yes":
+        _add_fact("bi-patch-check-fill",  "NBA Accreditation","Accredited",                                         "text-success")
+
+    ownership = ownership_label.strip()
+    if ownership and ownership not in ("N/A", ""):
+        _add_fact("bi-building-fill",     "College Type",     ownership,                                            "text-indigo")
+
+    if estd_year > 0:
+        _add_fact("bi-calendar-fill",     "Established",      str(estd_year),                                       "text-amber")
+
+    if placement_raw > 0:
+        _add_fact("bi-briefcase-fill",    "Avg. Package",     placement_display,                                    "text-success")
+
+    # 7. Generate the AI one-liner for the Quick Facts card
+    ai_oneliner = _generate_ai_oneliner(
+        name=college_name,
+        city=str(primary.get(COL_CITY, "")),
+        university=home_university,
+        fees_display=fees_display,
+        branch_names=all_branch_names,
+        ownership=ownership_label,
+        naac=naac,
+    )
+
+    # 8. Generate the full 5-bullet AI summary
     ai_summary = _generate_ai_summary(primary, all_branch_names, branches)
 
     return {
@@ -147,14 +216,14 @@ def get_college_profile(college_id: str) -> dict[str, Any] | None:
         "name":              college_name,
         "city":              str(primary.get(COL_CITY, "")),
         "district":          str(primary.get(COL_DISTRICT, "")),
-        "university":        str(primary.get(COL_UNIV, "")),
+        "university":        home_university,
         "type":              str(primary.get(COL_TYPE, "")),
         "ownership_label":   ownership_label,
         "established_year":  estd_year if estd_year > 0 else None,
         "college_age":       college_age,
         # Accreditation
-        "naac_grade":        str(primary.get(COL_NAAC, "N/A")),
-        "nba_accredited":    str(primary.get(COL_NBA, "No")),
+        "naac_grade":        naac if naac else "N/A",
+        "nba_accredited":    nba if nba else "No",
         # Branches & cutoffs
         "branches":          branches,
         "all_branch_names":  all_branch_names,
@@ -165,6 +234,9 @@ def get_college_profile(college_id: str) -> dict[str, Any] | None:
         # Placements
         "avg_placement_lpa": placement_raw,
         "placement_display": placement_display,
+        # Quick Facts card data
+        "quick_facts":       quick_facts,
+        "ai_oneliner":       ai_oneliner,
         # AI content
         "ai_summary":        ai_summary,
     }
@@ -250,3 +322,54 @@ def _fallback_summary(
         f"- The average placement package is {primary.get(COL_PLACEMENT, 'N/A')} LPA.",
     ]
     return "\n".join(lines)
+
+
+def _generate_ai_oneliner(
+    *,
+    name: str,
+    city: str,
+    university: str,
+    fees_display: str,
+    branch_names: list[str],
+    ownership: str,
+    naac: str,
+) -> str:
+    """
+    Call IBM Watsonx Granite for a single-sentence college overview.
+    Falls back to a deterministic sentence when unavailable.
+    """
+    branches_str = ", ".join(branch_names[:4])
+    if len(branch_names) > 4:
+        branches_str += f" and {len(branch_names) - 4} more"
+
+    user_msg = (
+        f"College: {name}\n"
+        f"Location: {city}, Maharashtra\n"
+        f"University: {university}\n"
+        f"Type: {ownership or 'Engineering College'}\n"
+        f"Branches: {branches_str}\n"
+        f"Annual Fees: {fees_display}\n"
+        f"NAAC: {naac or 'Not available'}\n\n"
+        "Write exactly ONE sentence summarising this college for a prospective student."
+    )
+
+    try:
+        reply = chat(user_msg, system_prompt=_QUICKFACT_SYSTEM)
+        if reply and not reply.startswith("Watsonx Error"):
+            # Strip any leading dash or bullet
+            return reply.lstrip("- •").strip()
+    except Exception as exc:
+        logger.warning("AI one-liner generation failed: %s", exc)
+
+    # Deterministic fallback
+    branch_short = ", ".join(branch_names[:3])
+    if len(branch_names) > 3:
+        branch_short += f" and {len(branch_names) - 3} more"
+    parts = [f"{name} is an engineering college in {city}"]
+    if university:
+        parts.append(f"affiliated to {university}")
+    if branch_short:
+        parts.append(f"offering {branch_short}")
+    if fees_display and fees_display != "Not available":
+        parts.append(f"with annual fees of {fees_display}")
+    return " ".join(parts) + "."

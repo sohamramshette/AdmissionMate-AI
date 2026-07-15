@@ -1,0 +1,661 @@
+/* ============================================================
+   branch_advisor.css — AI Branch Recommendation Page Styles
+   ============================================================ */
+
+/* ── Page header ─────────────────────────────────────────── */
+.ba-page-header {
+  background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 50%, #0ea5e9 100%);
+  padding: 3rem 0 2.5rem;
+  color: #fff;
+}
+
+.ba-page-header h1 {
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.ba-page-header p {
+  opacity: 0.88;
+  font-size: 1.05rem;
+}
+
+/* ── Wizard card ──────────────────────────────────────────── */
+.ba-wizard-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 1rem;
+  box-shadow: 0 6px 32px rgba(79, 70, 229, 0.09);
+  overflow: hidden;
+}
+
+/* ── Step indicator ───────────────────────────────────────── */
+.ba-step-indicator {
+  display: flex;
+  align-items: center;
+  padding: 1.5rem 1.75rem 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+  gap: 0;
+}
+
+.ba-step-indicator::-webkit-scrollbar { display: none; }
+
+.ba-step-dot-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  min-width: 36px;
+  position: relative;
+}
+
+.ba-step-dot {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.72rem;
+  font-weight: 700;
+  border: 2px solid #d1d5db;
+  background: #f9fafb;
+  color: #9ca3af;
+  transition: all 0.25s ease;
+  z-index: 1;
+}
+
+.ba-step-dot.active {
+  background: #7c3aed;
+  border-color: #7c3aed;
+  color: #fff;
+  box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.18);
+}
+
+.ba-step-dot.completed {
+  background: #10b981;
+  border-color: #10b981;
+  color: #fff;
+}
+
+.ba-step-label {
+  font-size: 0.62rem;
+  color: #9ca3af;
+  margin-top: 0.35rem;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.ba-step-label.active    { color: #7c3aed; font-weight: 700; }
+.ba-step-label.completed { color: #10b981; font-weight: 600; }
+
+.ba-step-connector {
+  flex: 1;
+  height: 2px;
+  background: #e5e7eb;
+  margin-top: -1rem;
+  min-width: 16px;
+  transition: background 0.25s;
+}
+
+.ba-step-connector.completed { background: #10b981; }
+
+/* ── Progress bar ─────────────────────────────────────────── */
+.ba-progress-wrap {
+  padding: 1rem 1.75rem 0;
+}
+
+.ba-progress {
+  height: 5px;
+  background: #f1f5f9;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.ba-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #7c3aed, #4f46e5);
+  border-radius: 999px;
+  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ── Step panels ──────────────────────────────────────────── */
+.ba-step-panel {
+  display: none;
+  padding: 1.75rem 1.75rem 0;
+  animation: baSlideFade 0.3s ease both;
+}
+
+.ba-step-panel.active { display: block; }
+
+@keyframes baSlideFade {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.ba-step-panel h4 {
+  font-weight: 700;
+  font-size: 1.2rem;
+  color: #1e293b;
+  margin-bottom: 0.25rem;
+}
+
+.ba-step-subtitle {
+  color: #64748b;
+  font-size: 0.9rem;
+  margin-bottom: 1.25rem;
+}
+
+/* ── Option chips (checkbox / radio groups) ───────────────── */
+.ba-option-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-bottom: 0.5rem;
+}
+
+.ba-option-group input[type="checkbox"],
+.ba-option-group input[type="radio"] {
+  display: none;
+}
+
+.ba-option-group label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 1rem;
+  border: 1.5px solid #d1d5db;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  user-select: none;
+  background: #fff;
+}
+
+.ba-option-group label:hover {
+  border-color: #7c3aed;
+  color: #7c3aed;
+  background: rgba(124, 58, 237, 0.05);
+}
+
+.ba-option-group input:checked + label {
+  border-color: #7c3aed;
+  background: rgba(124, 58, 237, 0.1);
+  color: #7c3aed;
+  font-weight: 700;
+}
+
+/* ── Career text input ────────────────────────────────────── */
+.ba-input {
+  width: 100%;
+  padding: 0.7rem 1rem;
+  border: 1.5px solid #d1d5db;
+  border-radius: 0.75rem;
+  font-size: 0.95rem;
+  color: #1e293b;
+  background: #fff;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  outline: none;
+}
+
+.ba-input:focus {
+  border-color: #7c3aed;
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15);
+}
+
+/* ── Step error ───────────────────────────────────────────── */
+.ba-step-error {
+  color: #dc2626;
+  font-size: 0.8rem;
+  margin-top: 0.35rem;
+  min-height: 1.1rem;
+}
+
+/* ── Wizard nav ───────────────────────────────────────────── */
+.ba-wizard-nav {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1.5rem 1.75rem;
+  border-top: 1px solid #f1f5f9;
+  margin-top: 1.5rem;
+}
+
+.btn-ba-prev {
+  background: none;
+  border: 1.5px solid #d1d5db;
+  border-radius: 999px;
+  padding: 0.55rem 1.5rem;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.18s;
+}
+
+.btn-ba-prev:hover {
+  border-color: #7c3aed;
+  color: #7c3aed;
+}
+
+.btn-ba-next {
+  background: linear-gradient(135deg, #7c3aed, #4f46e5);
+  border: none;
+  border-radius: 999px;
+  padding: 0.55rem 1.75rem;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #fff;
+  cursor: pointer;
+  transition: opacity 0.2s, transform 0.2s;
+}
+
+.btn-ba-next:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.btn-ba-generate {
+  background: linear-gradient(135deg, #7c3aed, #4f46e5);
+  border: none;
+  border-radius: 999px;
+  padding: 0.65rem 2rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #fff;
+  cursor: pointer;
+  transition: opacity 0.2s, transform 0.2s;
+  display: none;
+}
+
+.btn-ba-generate:hover {
+  opacity: 0.9;
+  transform: translateY(-2px);
+}
+
+/* ── Loading overlay ──────────────────────────────────────── */
+.ba-loading-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.75);
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  display: none;
+}
+
+.ba-loading-overlay.active { display: flex; }
+
+.ba-loading-ring {
+  width: 72px;
+  height: 72px;
+  border: 4px solid rgba(255, 255, 255, 0.15);
+  border-top-color: #7c3aed;
+  border-radius: 50%;
+  animation: baSpin 0.9s linear infinite;
+}
+
+@keyframes baSpin {
+  to { transform: rotate(360deg); }
+}
+
+.ba-loading-text {
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.ba-loading-subtext {
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+/* ══════════════════════════════════════════════════════════
+   RESULTS PAGE
+══════════════════════════════════════════════════════════ */
+
+/* ── Result banner ────────────────────────────────────────── */
+.ba-result-banner {
+  background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 50%, #0ea5e9 100%);
+  padding: 3.5rem 0 3rem;
+  color: #fff;
+  text-align: center;
+}
+
+.ba-result-banner h1 {
+  font-size: 2.4rem;
+  font-weight: 800;
+}
+
+/* ── Compatibility score ring ─────────────────────────────── */
+.ba-score-ring {
+  position: relative;
+  width: 110px;
+  height: 110px;
+  margin: 0 auto 1rem;
+}
+
+.ba-score-ring svg {
+  transform: rotate(-90deg);
+}
+
+.ba-score-ring .ba-ring-track {
+  fill: none;
+  stroke: rgba(255,255,255,0.2);
+  stroke-width: 8;
+}
+
+.ba-score-ring .ba-ring-fill {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 8;
+  stroke-linecap: round;
+  stroke-dasharray: 283;
+  stroke-dashoffset: 283;
+  transition: stroke-dashoffset 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.ba-score-value {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1;
+}
+
+.ba-score-value span {
+  font-size: 0.7rem;
+  font-weight: 500;
+  opacity: 0.85;
+}
+
+/* ── Primary branch card ──────────────────────────────────── */
+.ba-primary-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 1.25rem;
+  padding: 2rem;
+  box-shadow: 0 4px 24px rgba(79, 70, 229, 0.08);
+}
+
+/* ── Metric bar ───────────────────────────────────────────── */
+.ba-metric-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.6rem;
+}
+
+.ba-metric-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #374151;
+  min-width: 120px;
+}
+
+.ba-metric-track {
+  flex: 1;
+  height: 6px;
+  background: #f1f5f9;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.ba-metric-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #7c3aed, #4f46e5);
+  border-radius: 999px;
+  width: 0;
+  transition: width 1s ease 0.5s;
+}
+
+.ba-metric-value {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #7c3aed;
+  min-width: 28px;
+  text-align: right;
+}
+
+/* ── Reason bullets ───────────────────────────────────────── */
+.ba-bullet {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #f8fafc;
+  font-size: 0.88rem;
+  color: #374151;
+}
+
+.ba-bullet:last-child { border-bottom: none; }
+
+.ba-bullet-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #7c3aed;
+  flex-shrink: 0;
+  margin-top: 0.45rem;
+}
+
+/* ── Career timeline ──────────────────────────────────────── */
+.ba-timeline {
+  position: relative;
+  padding-left: 1.5rem;
+}
+
+.ba-timeline::before {
+  content: "";
+  position: absolute;
+  left: 0.4rem;
+  top: 0.5rem;
+  bottom: 0.5rem;
+  width: 2px;
+  background: linear-gradient(180deg, #7c3aed, #0ea5e9);
+  border-radius: 2px;
+}
+
+.ba-timeline-item {
+  position: relative;
+  padding: 0.4rem 0 0.4rem 1rem;
+  font-size: 0.88rem;
+  color: #374151;
+  font-weight: 500;
+}
+
+.ba-timeline-item::before {
+  content: "";
+  position: absolute;
+  left: -1.15rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #7c3aed;
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 2px #7c3aed;
+}
+
+.ba-timeline-item:first-child::before { background: #10b981; box-shadow: 0 0 0 2px #10b981; }
+.ba-timeline-item:last-child::before  { background: #f59e0b; box-shadow: 0 0 0 2px #f59e0b; }
+
+/* ── Skill badge ──────────────────────────────────────────── */
+.ba-skill-badge {
+  display: inline-block;
+  background: rgba(124, 58, 237, 0.08);
+  color: #7c3aed;
+  border: 1px solid rgba(124, 58, 237, 0.2);
+  border-radius: 0.5rem;
+  padding: 0.25rem 0.7rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+/* ── Roadmap year card ────────────────────────────────────── */
+.ba-roadmap-year {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.85rem;
+  padding: 1rem 1.25rem;
+  height: 100%;
+}
+
+.ba-roadmap-year-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #7c3aed;
+  margin-bottom: 0.5rem;
+}
+
+.ba-roadmap-year ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.ba-roadmap-year li {
+  font-size: 0.82rem;
+  color: #374151;
+  padding: 0.2rem 0;
+  border-bottom: 1px solid #f8fafc;
+}
+
+.ba-roadmap-year li:last-child { border-bottom: none; }
+
+.ba-roadmap-year li::before {
+  content: "›";
+  color: #7c3aed;
+  font-weight: 700;
+  margin-right: 0.4rem;
+}
+
+/* ── Alternative branch card ──────────────────────────────── */
+.ba-alt-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 1rem;
+  padding: 1.25rem;
+  transition: box-shadow 0.2s, transform 0.2s;
+  height: 100%;
+}
+
+.ba-alt-card:hover {
+  box-shadow: 0 6px 24px rgba(124, 58, 237, 0.1);
+  transform: translateY(-3px);
+}
+
+.ba-alt-score {
+  display: inline-block;
+  background: linear-gradient(135deg, #7c3aed, #4f46e5);
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.2rem 0.7rem;
+  border-radius: 999px;
+}
+
+/* ── Comparison table ─────────────────────────────────────── */
+.ba-cmp-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.85rem;
+  border-radius: 0.85rem;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+}
+
+.ba-cmp-table thead tr {
+  background: linear-gradient(135deg, #7c3aed, #4f46e5);
+  color: #fff;
+}
+
+.ba-cmp-table th,
+.ba-cmp-table td {
+  padding: 0.65rem 1rem;
+  text-align: center;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.ba-cmp-table th:first-child,
+.ba-cmp-table td:first-child {
+  text-align: left;
+  font-weight: 600;
+  background: #fafafa;
+}
+
+.ba-cmp-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Star rating in table */
+.ba-stars { color: #f59e0b; font-size: 0.75rem; letter-spacing: 0.03em; }
+
+/* ── Recruiter badge ──────────────────────────────────────── */
+.ba-recruiter-badge {
+  display: inline-block;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.6rem;
+  padding: 0.35rem 0.85rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #374151;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.ba-recruiter-badge:hover {
+  background: rgba(124, 58, 237, 0.06);
+  border-color: #7c3aed;
+  color: #7c3aed;
+}
+
+/* ── AI summary card ──────────────────────────────────────── */
+.ba-ai-card {
+  background: linear-gradient(135deg, rgba(124,58,237,0.05), rgba(79,70,229,0.05));
+  border: 1px solid rgba(124, 58, 237, 0.2);
+  border-radius: 1rem;
+  padding: 1.5rem;
+}
+
+/* ── Section headings on result page ─────────────────────── */
+.ba-section-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.ba-section-title .bi {
+  color: #7c3aed;
+}
+
+/* ── Responsive ───────────────────────────────────────────── */
+@media (max-width: 576px) {
+  .ba-wizard-card { border-radius: 0.75rem; }
+  .ba-step-panel  { padding: 1.25rem 1rem 0; }
+  .ba-wizard-nav  { padding: 1.25rem 1rem; }
+  .ba-result-banner h1 { font-size: 1.7rem; }
+}

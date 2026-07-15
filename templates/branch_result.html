@@ -1,0 +1,383 @@
+{# ============================================================
+   branch_result.html — AI Branch Recommendation Results
+   Shows: primary recommendation, alternatives, career path,
+          skills, roadmap, recruiters, branch comparison table.
+   ============================================================ #}
+{% extends "base.html" %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/branch_advisor.css') }}" />
+{% endblock %}
+
+{% block content %}
+
+{% set p = result.primary %}
+{% set alts = result.alternatives %}
+
+{# ── Result banner ──────────────────────────────────────────── #}
+<div class="ba-result-banner">
+  <div class="container">
+    <div class="hero-badge mb-3">
+      <i class="bi bi-stars me-1"></i> AI Recommendation Ready
+    </div>
+    <h1 class="mb-2">Your Ideal Branch</h1>
+    <p class="mb-0 fs-4 fw-700">
+      <i class="bi {{ p.icon }} me-2"></i>{{ p.branch }}
+    </p>
+    <p class="mt-1 mb-0" style="opacity:.82">
+      Compatibility Score &nbsp;·&nbsp; <strong>{{ p.score }}%</strong>
+    </p>
+  </div>
+</div>
+
+<section class="py-5">
+  <div class="container">
+    <div class="row g-4">
+
+      {# ════════════════════════════════════════════════
+         LEFT COLUMN — primary branch details
+      ════════════════════════════════════════════════ #}
+      <div class="col-lg-8">
+
+        {# ── Primary Card ── #}
+        <div class="ba-primary-card mb-4 fade-in-up">
+
+          <div class="d-flex align-items-center gap-3 mb-3">
+            <div class="feature-icon {{ p.color }}" style="width:3.2rem;height:3.2rem;font-size:1.4rem">
+              <i class="bi {{ p.icon }}"></i>
+            </div>
+            <div>
+              <h4 class="fw-800 mb-0">{{ p.branch }}</h4>
+              <span class="text-muted small">Recommended Branch</span>
+            </div>
+            <div class="ms-auto text-end">
+              {# Score ring #}
+              <div class="ba-score-ring" id="scoreRing" data-score="{{ p.score }}">
+                <svg viewBox="0 0 100 100" width="100" height="100">
+                  <circle class="ba-ring-track" cx="50" cy="50" r="45"/>
+                  <circle class="ba-ring-fill" id="ringFill" cx="50" cy="50" r="45"/>
+                </svg>
+                <div class="ba-score-value">
+                  {{ p.score }}<span>%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {# Metric bars #}
+          <div class="mb-4">
+            <p class="ba-section-title"><i class="bi bi-bar-chart-line"></i>Branch Metrics</p>
+            {% set metrics = [
+              ("Difficulty",          p.difficulty),
+              ("Salary Potential",    p.salary),
+              ("Placement Rate",      p.placement),
+              ("Higher Studies",      p.higher_studies),
+              ("Coding Requirement",  p.coding_req),
+              ("Math Requirement",    p.math_req),
+              ("Future Demand",       p.future_demand),
+            ] %}
+            {% for label, val in metrics %}
+            <div class="ba-metric-bar">
+              <span class="ba-metric-label">{{ label }}</span>
+              <div class="ba-metric-track">
+                <div class="ba-metric-fill" data-width="{{ (val / 5 * 100) | int }}%"></div>
+              </div>
+              <span class="ba-metric-value">{{ val }}/5</span>
+            </div>
+            {% endfor %}
+          </div>
+
+          {# Why this branch bullets #}
+          <div>
+            <p class="ba-section-title"><i class="bi bi-check2-circle"></i>Why This Branch?</p>
+            {% for bullet in p.bullets %}
+            <div class="ba-bullet">
+              <div class="ba-bullet-dot"></div>
+              <span>{{ bullet }}</span>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        {# ── AI Advisory Summary ── #}
+        {% if result.summary %}
+        <div class="ba-ai-card mb-4 fade-in-up delay-1">
+          <div class="d-flex align-items-center gap-2 mb-2">
+            <div class="feature-icon icon-indigo" style="width:2.2rem;height:2.2rem;font-size:1rem">
+              <i class="bi bi-robot"></i>
+            </div>
+            <h6 class="fw-700 mb-0">AdmissionMate AI Advisory</h6>
+          </div>
+          <p class="mb-0 small text-muted" style="line-height:1.7">{{ result.summary }}</p>
+        </div>
+        {% endif %}
+
+        {# ── Alternative Branches ── #}
+        {% if alts %}
+        <div class="mb-4 fade-in-up delay-1">
+          <div class="text-center mb-3">
+            <span class="section-tag">Also Consider</span>
+            <h5 class="fw-700 mt-1">Alternative Branches</h5>
+          </div>
+          <div class="row g-3">
+            {% for alt in alts %}
+            <div class="col-md-4">
+              <div class="ba-alt-card">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                  <div class="feature-icon {{ alt.color }}" style="width:2.2rem;height:2.2rem;font-size:1rem">
+                    <i class="bi {{ alt.icon }}"></i>
+                  </div>
+                  <div>
+                    <div class="fw-700 small">{{ alt.branch }}</div>
+                    <span class="ba-alt-score">{{ alt.score }}%</span>
+                  </div>
+                </div>
+                <p class="text-muted mb-2" style="font-size:.8rem;line-height:1.5">{{ alt.reason }}</p>
+                <div class="d-flex gap-2 flex-wrap" style="font-size:.72rem">
+                  <span class="text-muted">
+                    <i class="bi bi-cash-coin me-1 text-success"></i>Salary {{ alt.salary }}/5
+                  </span>
+                  <span class="text-muted">
+                    <i class="bi bi-briefcase me-1 text-primary"></i>Placement {{ alt.placement }}/5
+                  </span>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
+        {# ── Branch Comparison Table ── #}
+        {% if alts %}
+        <div class="card border-0 shadow-sm rounded-3 mb-4 fade-in-up delay-2">
+          <div class="card-body">
+            <div class="text-center mb-3">
+              <span class="section-tag">Side by Side</span>
+              <h5 class="fw-700 mt-1">Branch Comparison</h5>
+            </div>
+            <div class="table-responsive">
+              <table class="ba-cmp-table">
+                <thead>
+                  <tr>
+                    <th>Metric</th>
+                    <th>{{ p.branch | truncate(22, true, '…') }}</th>
+                    {% for alt in alts %}
+                    <th>{{ alt.branch | truncate(22, true, '…') }}</th>
+                    {% endfor %}
+                  </tr>
+                </thead>
+                <tbody>
+                  {% set cmp_metrics = [
+                    ("Difficulty",         "difficulty"),
+                    ("Salary Potential",   "salary"),
+                    ("Placement",          "placement"),
+                    ("Higher Studies",     "higher_studies"),
+                    ("Coding Requirement", "coding_req"),
+                    ("Math Requirement",   "math_req"),
+                    ("Future Demand",      "future_demand"),
+                  ] %}
+                  {% for label, key in cmp_metrics %}
+                  <tr>
+                    <td>{{ label }}</td>
+                    <td>
+                      <span class="ba-stars">
+                        {{ '★' * p[key] }}{{ '☆' * (5 - p[key]) }}
+                      </span>
+                    </td>
+                    {% for alt in alts %}
+                    <td>
+                      <span class="ba-stars">
+                        {{ '★' * alt.get(key, 3) }}{{ '☆' * (5 - alt.get(key, 3)) }}
+                      </span>
+                    </td>
+                    {% endfor %}
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        {% endif %}
+
+        {# ── Learning Roadmap ── #}
+        {% if p.roadmap %}
+        <div class="card border-0 shadow-sm rounded-3 mb-4 fade-in-up delay-2">
+          <div class="card-body">
+            <div class="text-center mb-3">
+              <span class="section-tag">4-Year Plan</span>
+              <h5 class="fw-700 mt-1">Learning Roadmap</h5>
+            </div>
+            <div class="row g-3">
+              {% for year, items in p.roadmap.items() %}
+              <div class="col-md-3 col-sm-6">
+                <div class="ba-roadmap-year">
+                  <div class="ba-roadmap-year-label">{{ year }}</div>
+                  <ul>
+                    {% for item in items %}
+                    <li>{{ item }}</li>
+                    {% endfor %}
+                  </ul>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+        {% endif %}
+
+      </div>{# /col-lg-8 #}
+
+      {# ════════════════════════════════════════════════
+         RIGHT COLUMN — career path, skills, recruiters
+      ════════════════════════════════════════════════ #}
+      <div class="col-lg-4">
+
+        {# ── Career Path ── #}
+        {% if p.career_path %}
+        <div class="card border-0 shadow-sm rounded-3 mb-4 fade-in-up delay-1">
+          <div class="card-body">
+            <p class="ba-section-title">
+              <i class="bi bi-arrow-up-right-circle"></i>Career Path
+            </p>
+            <div class="ba-timeline">
+              {% for step in p.career_path %}
+              <div class="ba-timeline-item">{{ step }}</div>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+        {% endif %}
+
+        {# ── Required Skills ── #}
+        {% if p.skills %}
+        <div class="card border-0 shadow-sm rounded-3 mb-4 fade-in-up delay-2">
+          <div class="card-body">
+            <p class="ba-section-title">
+              <i class="bi bi-tools"></i>Required Skills
+            </p>
+            {% for category, skill_list in p.skills.items() %}
+            <div class="mb-3">
+              <div class="text-muted mb-2" style="font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em">
+                {{ category }}
+              </div>
+              <div class="d-flex flex-wrap gap-2">
+                {% for skill in skill_list %}
+                <span class="ba-skill-badge">{{ skill }}</span>
+                {% endfor %}
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
+        {# ── Top Recruiters ── #}
+        {% if p.recruiters %}
+        <div class="card border-0 shadow-sm rounded-3 mb-4 fade-in-up delay-3">
+          <div class="card-body">
+            <p class="ba-section-title">
+              <i class="bi bi-buildings"></i>Top Recruiters
+            </p>
+            <div class="d-flex flex-wrap gap-2">
+              {% for company in p.recruiters %}
+              <span class="ba-recruiter-badge">{{ company }}</span>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+        {% endif %}
+
+        {# ── Profile Summary ── #}
+        <div class="card border-0 shadow-sm rounded-3 mb-4 fade-in-up delay-3">
+          <div class="card-body">
+            <p class="ba-section-title">
+              <i class="bi bi-person-badge"></i>Your Profile
+            </p>
+            <table class="table table-sm mb-0" style="font-size:.82rem">
+              <tbody>
+                {% if profile.career_goal %}
+                <tr>
+                  <td class="text-muted fw-600 pe-2">Career Goal</td>
+                  <td>{{ profile.career_goal }}</td>
+                </tr>
+                {% endif %}
+                {% if profile.enjoys_programming %}
+                <tr>
+                  <td class="text-muted fw-600 pe-2">Coding</td>
+                  <td>{{ profile.enjoys_programming | truncate(30) }}</td>
+                </tr>
+                {% endif %}
+                {% if profile.math_comfort %}
+                <tr>
+                  <td class="text-muted fw-600 pe-2">Mathematics</td>
+                  <td>{{ profile.math_comfort | truncate(30) }}</td>
+                </tr>
+                {% endif %}
+                {% if profile.work_env %}
+                <tr>
+                  <td class="text-muted fw-600 pe-2">Work Env</td>
+                  <td>{{ profile.work_env | truncate(30) }}</td>
+                </tr>
+                {% endif %}
+                {% if profile.priority %}
+                <tr>
+                  <td class="text-muted fw-600 pe-2">Priority</td>
+                  <td>{{ profile.priority | truncate(30) }}</td>
+                </tr>
+                {% endif %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {# ── Actions ── #}
+        <div class="d-grid gap-2 fade-in-up delay-4">
+          <button onclick="window.print()" class="btn btn-outline-primary rounded-pill">
+            <i class="bi bi-printer me-2"></i>Print / Save as PDF
+          </button>
+          <a href="{{ url_for('branch_advisor') }}" class="btn btn-outline-secondary rounded-pill">
+            <i class="bi bi-arrow-counterclockwise me-2"></i>Retake Assessment
+          </a>
+          <a href="{{ url_for('find_colleges') }}" class="btn btn-primary-custom rounded-pill">
+            <i class="bi bi-search me-2"></i>Find {{ p.branch | truncate(18, true, '…') }} Colleges
+          </a>
+        </div>
+
+      </div>{# /col-lg-4 #}
+
+    </div>{# /row #}
+  </div>
+</section>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+/* ── Animate score ring on load ─────────────────────────── */
+(function () {
+  const ring  = document.getElementById("ringFill");
+  const score = parseInt(document.getElementById("scoreRing").dataset.score, 10);
+  if (!ring || isNaN(score)) return;
+  const circumference = 2 * Math.PI * 45;  /* r=45 */
+  ring.style.strokeDasharray  = circumference;
+  ring.style.strokeDashoffset = circumference;
+  requestAnimationFrame(() => {
+    setTimeout(() => {
+      ring.style.strokeDashoffset = circumference - (score / 100) * circumference;
+    }, 200);
+  });
+})();
+
+/* ── Animate metric bar fills ──────────────────────────── */
+document.querySelectorAll(".ba-metric-fill").forEach(function (bar) {
+  bar.style.width = "0%";
+  requestAnimationFrame(function () {
+    setTimeout(function () {
+      bar.style.width = bar.dataset.width;
+    }, 300);
+  });
+});
+</script>
+{% endblock %}

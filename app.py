@@ -189,6 +189,44 @@ def create_app(config_class=Config):
         return jsonify({"colleges": colleges, "summary": summary})
 
     # -----------------------------------------------------------------------
+    # Route: AI Branch Advisor (questionnaire page)
+    # -----------------------------------------------------------------------
+    @app.route("/branch-advisor", methods=["GET", "POST"])
+    def branch_advisor():
+        """
+        Multi-step questionnaire that collects student interests and
+        forwards them to the AI branch recommendation engine.
+        """
+        if request.method == "POST":
+            from services.branch_advisor import recommend_branches
+
+            profile = {
+                "subjects":           request.form.getlist("subjects"),
+                "work_type":          request.form.getlist("work_type"),
+                "activities":         request.form.getlist("activities"),
+                "career_goal":        request.form.get("career_goal", "").strip(),
+                "enjoys_programming": request.form.get("enjoys_programming", "").strip(),
+                "work_env":           request.form.get("work_env", "").strip(),
+                "priority":           request.form.get("priority", "").strip(),
+                "math_comfort":       request.form.get("math_comfort", "").strip(),
+            }
+
+            # Persist profile for the result page
+            from flask import session
+            session["branch_profile"] = profile
+
+            result = recommend_branches(profile)
+
+            return render_template(
+                "branch_result.html",
+                title="Branch Recommendation",
+                profile=profile,
+                result=result,
+            )
+
+        return render_template("branch_advisor.html", title="AI Branch Advisor")
+
+    # -----------------------------------------------------------------------
     # Route: AI CAP Preference Generator
     # -----------------------------------------------------------------------
     @app.route("/cap-generator", methods=["GET", "POST"])

@@ -1,0 +1,235 @@
+{# ============================================================
+   branch_advisor.html — AI Branch Recommendation Questionnaire
+   8-step wizard that collects interest profile and submits to
+   the branch recommendation engine.
+   ============================================================ #}
+{% extends "base.html" %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/branch_advisor.css') }}" />
+{% endblock %}
+
+{% block content %}
+
+{# ── Page header ───────────────────────────────────────────── #}
+<div class="ba-page-header">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-lg-8">
+        <div class="hero-badge mb-2">
+          <i class="bi bi-stars me-1"></i> Powered by IBM Watsonx AI
+        </div>
+        <h1 class="mb-2">
+          <i class="bi bi-diagram-3 me-2"></i>AI Branch Advisor
+        </h1>
+        <p class="mb-0">
+          Answer 8 quick questions about your interests, strengths, and goals.
+          Our AI will recommend the most suitable engineering branch for you.
+        </p>
+      </div>
+      <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
+        <span class="badge bg-white text-primary fw-semibold px-3 py-2 fs-6">
+          <i class="bi bi-shield-check me-1"></i>Personalised AI Analysis
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+
+{# ── Wizard ────────────────────────────────────────────────── #}
+<div class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-xl-8 col-lg-10">
+
+      <div class="ba-wizard-card" id="baWizardCard">
+
+        {# ── Step indicator ──────────────────────────────────── #}
+        <div class="ba-step-indicator" id="baStepIndicator">
+          {% set step_labels = ['Subjects','Work Type','Activities','Career','Coding','Work Env','Priority','Math'] %}
+          {% for label in step_labels %}
+            {% set i = loop.index %}
+            <div class="ba-step-dot-wrap">
+              <div class="ba-step-dot" id="ba-dot{{ i }}">{{ i }}</div>
+              <span class="ba-step-label" id="ba-lbl{{ i }}">{{ label }}</span>
+            </div>
+            {% if not loop.last %}
+              <div class="ba-step-connector" id="ba-conn{{ i }}"></div>
+            {% endif %}
+          {% endfor %}
+        </div>
+
+        {# ── Progress bar ────────────────────────────────────── #}
+        <div class="ba-progress-wrap">
+          <div class="ba-progress">
+            <div class="ba-progress-bar" id="baProgressBar" style="width:0%"></div>
+          </div>
+          <div class="d-flex justify-content-between mt-1">
+            <span class="text-muted" style="font-size:.75rem" id="baStepCounter">Step 1 of 8</span>
+            <span class="text-muted" style="font-size:.75rem">Select all that apply</span>
+          </div>
+        </div>
+
+        {# ── Form ────────────────────────────────────────────── #}
+        <form id="baForm" method="POST" action="{{ url_for('branch_advisor') }}">
+
+          {# ═══ STEP 1 — Subjects ═══════════════════════════════ #}
+          <div class="ba-step-panel" id="ba-step1">
+            <h4><i class="bi bi-book me-2 text-primary"></i>What subjects do you enjoy?</h4>
+            <p class="ba-step-subtitle">Select all that apply. These help us match you to the right engineering curriculum.</p>
+            <div class="ba-option-group">
+              {% for subject in ['Mathematics', 'Physics', 'Chemistry', 'Biology', 'Computer Science',
+                                  'Electronics', 'Drawing / Design', 'English / Communication'] %}
+              <input type="checkbox" name="subjects" id="s_{{ loop.index }}" value="{{ subject }}" />
+              <label for="s_{{ loop.index }}">
+                <i class="bi bi-check-circle me-1"></i>{{ subject }}
+              </label>
+              {% endfor %}
+            </div>
+            <div class="ba-step-error" id="ba-err1"></div>
+          </div>
+
+          {# ═══ STEP 2 — Work Type ══════════════════════════════ #}
+          <div class="ba-step-panel" id="ba-step2">
+            <h4><i class="bi bi-briefcase me-2 text-primary"></i>What type of work interests you?</h4>
+            <p class="ba-step-subtitle">Choose activities that excite you most — can pick multiple.</p>
+            <div class="ba-option-group">
+              {% for wtype in ['Coding', 'Designing', 'Building Machines', 'Electronics',
+                                'Research', 'Business', 'Management', 'Teaching / Mentoring',
+                                'Data Analysis', 'Writing / Documentation'] %}
+              <input type="checkbox" name="work_type" id="wt_{{ loop.index }}" value="{{ wtype }}" />
+              <label for="wt_{{ loop.index }}">{{ wtype }}</label>
+              {% endfor %}
+            </div>
+            <div class="ba-step-error" id="ba-err2"></div>
+          </div>
+
+          {# ═══ STEP 3 — Activities ════════════════════════════ #}
+          <div class="ba-step-panel" id="ba-step3">
+            <h4><i class="bi bi-lightning-charge me-2 text-primary"></i>Which activities do you enjoy?</h4>
+            <p class="ba-step-subtitle">Pick your hobbies and interests — the AI uses these to personalise recommendations.</p>
+            <div class="ba-option-group">
+              {% for act in ['Problem Solving', 'Creativity', 'Logical Thinking', 'Communication',
+                              'Robotics', 'Gaming', 'AI / Machine Learning', 'Cybersecurity',
+                              'Electronics Projects', 'Drawing / CAD', 'Environmental Projects',
+                              'Chemistry Experiments', 'Mathematics Puzzles'] %}
+              <input type="checkbox" name="activities" id="act_{{ loop.index }}" value="{{ act }}" />
+              <label for="act_{{ loop.index }}">{{ act }}</label>
+              {% endfor %}
+            </div>
+            <div class="ba-step-error" id="ba-err3"></div>
+          </div>
+
+          {# ═══ STEP 4 — Career Goal ═══════════════════════════ #}
+          <div class="ba-step-panel" id="ba-step4">
+            <h4><i class="bi bi-bullseye me-2 text-primary"></i>What is your preferred career goal?</h4>
+            <p class="ba-step-subtitle">Choose the career path that best describes your dream — or type a custom one below.</p>
+            <div class="ba-option-group mb-3">
+              {% set careers = ['Software Engineer', 'AI / ML Engineer', 'Cybersecurity Engineer',
+                                 'Data Scientist', 'Mechanical Engineer', 'Civil Engineer',
+                                 'Electronics Engineer', 'Government Jobs / PSU',
+                                 'Higher Studies (M.Tech / MS / PhD)', 'Startup Founder',
+                                 'Product Manager', 'Research Scientist'] %}
+              {% for career in careers %}
+              <input type="radio" name="career_goal" id="cg_{{ loop.index }}" value="{{ career }}" />
+              <label for="cg_{{ loop.index }}">{{ career }}</label>
+              {% endfor %}
+            </div>
+            <label class="form-label" style="font-size:.85rem;font-weight:600;color:#374151">
+              Or type your own career goal:
+            </label>
+            <input type="text" class="ba-input" id="career_custom"
+                   placeholder="e.g. Cloud Architect, DevOps Engineer…"
+                   autocomplete="off" />
+            <div class="ba-step-error" id="ba-err4"></div>
+          </div>
+
+          {# ═══ STEP 5 — Enjoys Programming ════════════════════ #}
+          <div class="ba-step-panel" id="ba-step5">
+            <h4><i class="bi bi-code-slash me-2 text-primary"></i>Do you enjoy programming?</h4>
+            <p class="ba-step-subtitle">Be honest — this directly affects your branch match.</p>
+            <div class="ba-option-group">
+              {% for val in ['Yes, I love it', 'A little — I can learn', 'No, I prefer non-coding fields'] %}
+              <input type="radio" name="enjoys_programming" id="ep_{{ loop.index }}" value="{{ val }}" />
+              <label for="ep_{{ loop.index }}" style="font-size:.9rem">{{ val }}</label>
+              {% endfor %}
+            </div>
+            <div class="ba-step-error" id="ba-err5"></div>
+          </div>
+
+          {# ═══ STEP 6 — Work Environment ══════════════════════ #}
+          <div class="ba-step-panel" id="ba-step6">
+            <h4><i class="bi bi-building me-2 text-primary"></i>Preferred work environment?</h4>
+            <p class="ba-step-subtitle">Where do you imagine yourself working after graduation?</p>
+            <div class="ba-option-group">
+              {% for env in ['Office (IT / Software)', 'Field Work (Construction / Industry)', 'Laboratory / Research',
+                              'Remote / Work from Home', 'Flexible / Hybrid', 'Government / Public Sector'] %}
+              <input type="radio" name="work_env" id="we_{{ loop.index }}" value="{{ env }}" />
+              <label for="we_{{ loop.index }}">{{ env }}</label>
+              {% endfor %}
+            </div>
+            <div class="ba-step-error" id="ba-err6"></div>
+          </div>
+
+          {# ═══ STEP 7 — Priority ══════════════════════════════ #}
+          <div class="ba-step-panel" id="ba-step7">
+            <h4><i class="bi bi-trophy me-2 text-primary"></i>Which matters most to you?</h4>
+            <p class="ba-step-subtitle">Pick the single most important factor for your career.</p>
+            <div class="ba-option-group">
+              {% for p in ['High Salary', 'Job Stability', 'Innovation & Technology',
+                            'Research & Academia', 'Government Sector',
+                            'Entrepreneurship / Startup', 'Work–Life Balance'] %}
+              <input type="radio" name="priority" id="pr_{{ loop.index }}" value="{{ p }}" />
+              <label for="pr_{{ loop.index }}">{{ p }}</label>
+              {% endfor %}
+            </div>
+            <div class="ba-step-error" id="ba-err7"></div>
+          </div>
+
+          {# ═══ STEP 8 — Mathematics ═══════════════════════════ #}
+          <div class="ba-step-panel" id="ba-step8">
+            <h4><i class="bi bi-calculator me-2 text-primary"></i>How comfortable are you with Mathematics?</h4>
+            <p class="ba-step-subtitle">Be honest — some branches are very math-intensive.</p>
+            <div class="ba-option-group">
+              {% for m in ['Excellent — I score 90%+ consistently',
+                            'Good — I score 70-89%',
+                            'Average — I score 50-69%',
+                            'Weak — Mathematics is difficult for me'] %}
+              <input type="radio" name="math_comfort" id="mc_{{ loop.index }}" value="{{ m }}" />
+              <label for="mc_{{ loop.index }}">{{ m }}</label>
+              {% endfor %}
+            </div>
+            <div class="ba-step-error" id="ba-err8"></div>
+          </div>
+
+        </form>
+
+        {# ── Wizard navigation ───────────────────────────────── #}
+        <div class="ba-wizard-nav">
+          <button type="button" class="btn-ba-prev" id="baBtnPrev">
+            <i class="bi bi-chevron-left me-1"></i>Previous
+          </button>
+          <button type="button" class="btn-ba-next" id="baBtnNext">
+            Next<i class="bi bi-chevron-right ms-1"></i>
+          </button>
+          <button type="submit" form="baForm" class="btn-ba-generate" id="baBtnGenerate">
+            <i class="bi bi-stars me-2"></i>Get My Recommendation
+          </button>
+        </div>
+
+      </div>{# /ba-wizard-card #}
+    </div>
+  </div>
+</div>
+
+{# ── AI loading overlay ─────────────────────────────────────── #}
+<div class="ba-loading-overlay" id="baLoadingOverlay">
+  <div class="ba-loading-ring"></div>
+  <div class="ba-loading-text">AdmissionMate AI is analysing your profile…</div>
+  <div class="ba-loading-subtext">Powered by IBM Watsonx · Usually takes 5–15 seconds</div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/branch_advisor.js') }}"></script>
+{% endblock %}
