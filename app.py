@@ -114,11 +114,79 @@ def create_app(config_class=Config):
     # -----------------------------------------------------------------------
     @app.route("/compare")
     def compare():
-        """Side-by-side college comparison table (placeholder)."""
-        # TODO: call services.comparison.compare_colleges(selected_ids)
-        colleges = []  # Placeholder
-        return render_template("compare.html", title="Compare Colleges",
-                               colleges=colleges)
+        """Side-by-side dynamic college comparison page."""
+        return render_template("compare.html", title="Compare Colleges")
+
+    # -----------------------------------------------------------------------
+    # API: Search colleges by name (for comparison modal)
+    # -----------------------------------------------------------------------
+    @app.route("/api/colleges/search")
+    def api_colleges_search():
+        """
+        Return colleges matching a name query for the comparison search modal.
+
+        Query params:
+            q : str   Search term (case-insensitive, partial match)
+
+        Returns JSON array of {id, name, city, home_university}.
+        """
+        from services.comparison import get_college_directory
+
+        q = request.args.get("q", "").strip().lower()
+        directory = get_college_directory()
+
+        if q:
+            results = [
+                c for c in directory
+                if q in c["name"].lower() or q in c["city"].lower()
+            ]
+        else:
+            results = directory
+
+        # Return only the fields needed by the frontend
+        return jsonify([
+            {
+                "id":              c["id"],
+                "name":            c["name"],
+                "city":            c["city"],
+                "home_university": c["home_university"],
+                "branch_count":    c["branch_count"],
+                "avg_fees":        c["avg_fees"],
+                "avg_cutoff":      c["avg_cutoff"],
+            }
+            for c in results[:50]   # cap at 50 results
+        ])
+
+    # -----------------------------------------------------------------------
+    # API: Compare colleges endpoint
+    # -----------------------------------------------------------------------
+    @app.route("/api/compare", methods=["POST"])
+    def api_compare():
+        """
+        Accept a list of college IDs, return comparison data + AI summary.
+
+        Request JSON: { "ids": [1, 2, 3] }
+
+        Response JSON: {
+            "colleges": [...],
+            "summary":  "..."
+        }
+        """
+        from services.comparison import compare_colleges, generate_comparison_summary
+
+        payload = request.get_json(silent=True) or {}
+        ids = payload.get("ids", [])
+
+        if not ids or not isinstance(ids, list):
+            return jsonify({"error": "Provide a JSON list of college IDs under 'ids'."}), 400
+
+        # Clamp to max 4
+        ids = ids[:4]
+
+        colleges = compare_colleges(ids)
+        summary  = generate_comparison_summary(colleges)
+
+        return jsonify({"colleges": colleges, "summary": summary})
 
     # -----------------------------------------------------------------------
     # Route: AI CAP Preference Generator

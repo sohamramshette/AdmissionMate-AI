@@ -4,6 +4,37 @@
    ============================================================ #}
 {% extends "base.html" %}
 
+{% block extra_css %}
+<style>
+  /* ── Compare selection overlay ── */
+  .compare-checkbox-wrap {
+    position: absolute;
+    top: 0.6rem;
+    right: 0.6rem;
+    z-index: 10;
+  }
+  .compare-check {
+    width: 1.15rem;
+    height: 1.15rem;
+    accent-color: var(--primary);
+    cursor: pointer;
+  }
+  .college-card.compare-selected {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+  }
+  #compare-fab {
+    position: fixed;
+    bottom: 1.75rem;
+    right: 1.75rem;
+    z-index: 1050;
+    transition: opacity 0.25s, transform 0.25s;
+    box-shadow: 0 4px 20px rgba(79,70,229,0.35);
+  }
+  #compare-fab.d-none { display: none !important; }
+</style>
+{% endblock %}
+
 {% block content %}
 
 {# ── Page banner #}
@@ -107,10 +138,13 @@
                      class="btn btn-primary-custom btn-sm flex-fill">
                     <i class="bi bi-eye me-1"></i>View Details
                   </a>
-                  <a href="{{ url_for('compare') }}"
-                     class="btn btn-outline-primary btn-sm px-3" title="Add to Compare">
-                    <i class="bi bi-plus-lg"></i>
-                  </a>
+                  <button class="btn btn-outline-primary btn-sm px-3 compare-toggle-btn"
+                          data-id="{{ college.college_id }}"
+                          data-name="{{ college.name | e }}"
+                          data-city="{{ college.city | e }}"
+                          title="Add to Compare">
+                    <i class="bi bi-bar-chart-steps"></i>
+                  </button>
                 </div>
               </div>
             </div>
@@ -188,11 +222,91 @@
   </div>
 </section>
 
+{# ── Floating Compare Button ─────────────────────────────── #}
+<a id="compare-fab"
+   href="{{ url_for('compare') }}"
+   class="btn btn-primary-custom rounded-pill px-4 py-2 d-none"
+   title="Open comparison page">
+  <i class="bi bi-bar-chart-steps me-2"></i>
+  <span id="compare-fab-label">Compare (0)</span>
+</a>
+
 {% block scripts %}
 <script>
   document.querySelectorAll('[data-delay]').forEach(function(el) {
     el.style.setProperty('--card-delay', el.dataset.delay + 's');
   });
+
+  /* ── Compare toggle logic ── */
+  (function () {
+    const STORAGE_KEY = "compareCollegeIds";
+    const MAX = 4;
+
+    function getSelected() {
+      try { return JSON.parse(sessionStorage.getItem(STORAGE_KEY) || "[]"); }
+      catch (_) { return []; }
+    }
+    function setSelected(arr) {
+      try { sessionStorage.setItem(STORAGE_KEY, JSON.stringify(arr)); }
+      catch (_) {}
+    }
+
+    function updateFAB(selected) {
+      const fab   = document.getElementById("compare-fab");
+      const label = document.getElementById("compare-fab-label");
+      if (!fab) return;
+      if (selected.length >= 2) {
+        fab.classList.remove("d-none");
+        label.textContent = "Compare (" + selected.length + ")";
+      } else {
+        fab.classList.add("d-none");
+      }
+    }
+
+    function refreshCards(selected) {
+      document.querySelectorAll(".compare-toggle-btn").forEach(function (btn) {
+        const id   = parseInt(btn.dataset.id, 10);
+        const card = btn.closest(".college-card");
+        const active = selected.some(function (c) { return c.id === id; });
+        btn.classList.toggle("btn-primary", active);
+        btn.classList.toggle("btn-outline-primary", !active);
+        if (card) card.classList.toggle("compare-selected", active);
+        btn.title = active ? "Remove from Compare" : "Add to Compare";
+      });
+    }
+
+    /* Init from storage */
+    let selected = getSelected();
+    updateFAB(selected);
+    refreshCards(selected);
+
+    /* Bind toggle buttons */
+    document.querySelectorAll(".compare-toggle-btn").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        selected = getSelected();
+        const id   = parseInt(btn.dataset.id, 10);
+        const name = btn.dataset.name;
+        const city = btn.dataset.city;
+        const idx  = selected.findIndex(function (c) { return c.id === id; });
+
+        if (idx > -1) {
+          selected.splice(idx, 1);
+          showToast(name + " removed from comparison.", "info");
+        } else {
+          if (selected.length >= MAX) {
+            showToast("Maximum 4 colleges can be compared.", "warning");
+            return;
+          }
+          selected.push({ id: id, name: name, city: city });
+          showToast(name + " added to comparison.", "success");
+        }
+
+        setSelected(selected);
+        updateFAB(selected);
+        refreshCards(selected);
+      });
+    });
+  })();
 </script>
 {% endblock %}
 
