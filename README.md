@@ -197,4 +197,5 @@ the service module is implemented.
 
 ## License
 
-MIT © 2024 College Admission Assistant Project
+MIT © 2026 College Admission Assistant Project
+~AutoGraph !!
