@@ -268,13 +268,21 @@ def create_app(config_class=Config):
         """
         from services.comparison import get_college_directory
 
-        q = request.args.get("q", "").strip().lower()
         directory = get_college_directory()
+        q         = request.args.get("q", "").strip().lower()
+        ids_param = request.args.get("ids", "").strip()
+        id_param  = request.args.get("id", "").strip()
 
-        if q:
+        if ids_param:
+            req_ids = {int(x) for x in ids_param.split(",") if x.strip().isdigit()}
+            results = [c for c in directory if c["id"] in req_ids]
+        elif id_param and id_param.isdigit():
+            target_id = int(id_param)
+            results = [c for c in directory if c["id"] == target_id]
+        elif q:
             results = [
                 c for c in directory
-                if q in c["name"].lower() or q in c["city"].lower()
+                if q in c["name"].lower() or q in c["city"].lower() or (q.isdigit() and int(q) == c["id"])
             ]
         else:
             results = directory

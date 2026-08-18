@@ -249,7 +249,9 @@
   <span id="compare-fab-label">Compare (0)</span>
 </a>
 
-{% block scripts %}
+{% endblock %}
+
+{% block extra_js %}
 <script>
   document.querySelectorAll('[data-delay]').forEach(function(el) {
     el.style.setProperty('--card-delay', el.dataset.delay + 's');
@@ -309,14 +311,20 @@
 
         if (idx > -1) {
           selected.splice(idx, 1);
-          showToast(name + " removed from comparison.", "info");
+          if (typeof showToast === 'function') {
+            showToast(name + " removed from comparison.", "info");
+          }
         } else {
           if (selected.length >= MAX) {
-            showToast("Maximum 4 colleges can be compared.", "warning");
+            if (typeof showToast === 'function') {
+              showToast("Maximum 4 colleges can be compared.", "warning");
+            }
             return;
           }
           selected.push({ id: id, name: name, city: city });
-          showToast(name + " added to comparison.", "success");
+          if (typeof showToast === 'function') {
+            showToast(name + " added to comparison.", "success");
+          }
         }
 
         setSelected(selected);
@@ -326,6 +334,4 @@
     });
   })();
 </script>
-{% endblock %}
-
 {% endblock %}

@@ -9,6 +9,7 @@
  *   - Highlighting best values (green)
  *   - Displaying AI summary
  *   - sessionStorage integration (pre-populate from Find Colleges page)
+ *   - URL query parameters support (?add=1, ?id=1, ?ids=1,2,3)
  *
  * No page reloads — fully SPA-style interaction.
  */
@@ -59,55 +60,116 @@ document.addEventListener("DOMContentLoaded", () => {
 
   /* Init Bootstrap modal */
   const modalEl = document.getElementById("addCollegeModal");
-  addCollegeModal = new bootstrap.Modal(modalEl);
+  if (modalEl && typeof bootstrap !== "undefined") {
+    addCollegeModal = new bootstrap.Modal(modalEl);
 
-  /* Clear search input when modal opens */
-  modalEl.addEventListener("show.bs.modal", () => {
-    collegeSearchInput.value = "";
-    duplicateWarning.classList.add("d-none");
-    resetSearchResults();
-  });
-  /* Focus search input after modal is shown */
-  modalEl.addEventListener("shown.bs.modal", () => {
-    collegeSearchInput.focus();
-  });
+    /* Clear search input when modal opens */
+    modalEl.addEventListener("show.bs.modal", () => {
+      collegeSearchInput.value = "";
+      duplicateWarning.classList.add("d-none");
+      resetSearchResults();
+    });
+    /* Focus search input after modal is shown */
+    modalEl.addEventListener("shown.bs.modal", () => {
+      collegeSearchInput.focus();
+    });
+  }
 
   /* Wire up buttons */
-  addCollegeBtn.addEventListener("click", openAddModal);
-  compareBtn.addEventListener("click", runComparison);
-  collegeSearchInput.addEventListener("input", onSearchInput);
+  if (addCollegeBtn) addCollegeBtn.addEventListener("click", openAddModal);
+  if (compareBtn) compareBtn.addEventListener("click", runComparison);
+  if (collegeSearchInput) collegeSearchInput.addEventListener("input", onSearchInput);
 
   /* Restore from sessionStorage (pre-populated from Find Colleges page) */
   restoreFromStorage();
 
-  /* If colleges were restored, auto-run the comparison */
+  /* Also process URL parameters (e.g. ?add=1, ?id=1, or ?ids=1,2,3) */
+  initFromUrlParams();
+});
+
+/* ── Process URL query parameters ──────────────────────────────────── */
+async function initFromUrlParams() {
+  const params   = new URLSearchParams(window.location.search);
+  const addId    = params.get("add") || params.get("id");
+  const idsParam = params.get("ids") || params.get("colleges");
+
+  let modified = false;
+
+  if (idsParam) {
+    const rawIds = idsParam.split(",").map((s) => s.trim()).filter(Boolean);
+    if (rawIds.length > 0) {
+      try {
+        const res = await fetch(`/api/colleges/search?ids=${encodeURIComponent(rawIds.join(","))}`);
+        const list = await res.json();
+        if (Array.isArray(list) && list.length > 0) {
+          list.forEach((col) => {
+            if (!selectedColleges.some((c) => c.id === col.id) && selectedColleges.length < MAX_COLLEGES) {
+              selectedColleges.push({ id: col.id, name: col.name, city: col.city });
+              modified = true;
+            }
+          });
+        }
+      } catch (err) {
+        console.warn("Failed to load colleges from ids param:", err);
+      }
+    }
+  } else if (addId) {
+    try {
+      const res = await fetch(`/api/colleges/search?id=${encodeURIComponent(addId)}`);
+      const list = await res.json();
+      if (Array.isArray(list) && list.length > 0) {
+        const col = list[0];
+        if (!selectedColleges.some((c) => c.id === col.id) && selectedColleges.length < MAX_COLLEGES) {
+          selectedColleges.push({ id: col.id, name: col.name, city: col.city });
+          modified = true;
+        }
+      }
+    } catch (err) {
+      console.warn("Failed to load college from add/id param:", err);
+    }
+  }
+
+  if (modified) {
+    persistToStorage();
+    renderPills();
+    updateActionBar();
+  }
+
   if (selectedColleges.length >= MIN_COLLEGES) {
     runComparison();
+  } else if (selectedColleges.length === 1 && addId) {
+    // If only 1 college is selected via link, open modal to easily choose a second college
+    setTimeout(() => {
+      openAddModal();
+    }, 400);
   }
-});
+}
 
 /* ── Open the Add College Modal ────────────────────────────────────── */
 function openAddModal() {
   if (selectedColleges.length >= MAX_COLLEGES) return;
-  addCollegeModal.show();
+  if (addCollegeModal) {
+    addCollegeModal.show();
+  }
 }
 
 /* ── Search input handler (debounced) ──────────────────────────────── */
 function onSearchInput() {
-  duplicateWarning.classList.add("d-none");
+  if (duplicateWarning) duplicateWarning.classList.add("d-none");
   clearTimeout(searchDebounceTimer);
   searchDebounceTimer = setTimeout(() => {
-    const q = collegeSearchInput.value.trim();
+    const q = collegeSearchInput ? collegeSearchInput.value.trim() : "";
     if (q.length === 0) {
       resetSearchResults();
       return;
     }
     fetchSearchResults(q);
-  }, 200);
+  }, 180);
 }
 
 /* ── Reset search results to initial state ─────────────────────────── */
 function resetSearchResults() {
+  if (!searchResults) return;
   searchResults.innerHTML = `
     <p class="text-muted small text-center py-4" id="search-placeholder">
       <i class="bi bi-keyboard me-1"></i> Start typing to search colleges…
@@ -116,6 +178,7 @@ function resetSearchResults() {
 
 /* ── Fetch search results from API ─────────────────────────────────── */
 async function fetchSearchResults(query) {
+  if (!searchResults) return;
   searchResults.innerHTML = `
     <p class="text-muted small text-center py-3">
       <span class="spinner-border spinner-border-sm me-2"></span>Searching…
@@ -135,7 +198,8 @@ async function fetchSearchResults(query) {
 
 /* ── Render search result list ──────────────────────────────────────── */
 function renderSearchResults(colleges) {
-  if (!colleges.length) {
+  if (!searchResults) return;
+  if (!colleges || !colleges.length) {
     searchResults.innerHTML = `
       <p class="text-muted small text-center py-4">
         <i class="bi bi-search me-1"></i> No colleges found. Try a different search.
@@ -151,7 +215,7 @@ function renderSearchResults(colleges) {
       : '<i class="bi bi-plus-circle me-2 text-primary"></i>';
 
     return `
-      <button class="college-result-item ${disabledClass}"
+      <button type="button" class="college-result-item ${disabledClass}"
               data-id="${c.id}"
               data-name="${escapeHtml(c.name)}"
               data-city="${escapeHtml(c.city)}"
@@ -163,7 +227,7 @@ function renderSearchResults(colleges) {
             <div class="text-muted" style="font-size:.75rem">
               <i class="bi bi-geo-alt me-1"></i>${escapeHtml(c.city)}
               &nbsp;·&nbsp;
-              <i class="bi bi-diagram-3 me-1"></i>${c.branch_count} branches
+              <i class="bi bi-diagram-3 me-1"></i>${c.branch_count || 0} branches
             </div>
           </div>
         </div>
@@ -189,24 +253,33 @@ function renderSearchResults(colleges) {
 function handleAddCollege(college) {
   /* Duplicate check */
   if (selectedColleges.some((c) => c.id === college.id)) {
-    duplicateWarning.classList.remove("d-none");
+    if (duplicateWarning) duplicateWarning.classList.remove("d-none");
     return;
   }
-  duplicateWarning.classList.add("d-none");
+  if (duplicateWarning) duplicateWarning.classList.add("d-none");
 
   /* Max limit check */
   if (selectedColleges.length >= MAX_COLLEGES) {
-    showToast("Maximum 4 colleges can be compared.", "warning");
+    if (typeof showToast === "function") {
+      showToast("Maximum 4 colleges can be compared.", "warning");
+    }
     return;
   }
 
   selectedColleges.push(college);
   persistToStorage();
-  addCollegeModal.hide();
+  if (addCollegeModal) addCollegeModal.hide();
   renderPills();
   updateActionBar();
 
-  showToast(`${college.name} added to comparison.`, "success");
+  if (typeof showToast === "function") {
+    showToast(`${college.name} added to comparison.`, "success");
+  }
+
+  // Auto-run comparison when 2 or more colleges are selected
+  if (selectedColleges.length >= MIN_COLLEGES) {
+    runComparison();
+  }
 }
 
 /* ── Remove a college ───────────────────────────────────────────────── */
@@ -226,12 +299,15 @@ function removeCollege(id) {
 
 /* ── Render selected pills ──────────────────────────────────────────── */
 function renderPills() {
+  if (!selectedPillsContainer) return;
   /* Remove existing pills (keep the label span and hint span) */
   const existingPills = selectedPillsContainer.querySelectorAll(".compare-pill");
   existingPills.forEach((p) => p.remove());
 
   /* Update hint visibility */
-  noCollegesHint.classList.toggle("d-none", selectedColleges.length > 0);
+  if (noCollegesHint) {
+    noCollegesHint.classList.toggle("d-none", selectedColleges.length > 0);
+  }
 
   /* Insert pills before the hint */
   selectedColleges.forEach((c) => {
@@ -239,7 +315,7 @@ function renderPills() {
     pill.className = "compare-pill badge rounded-pill px-3 py-2";
     pill.innerHTML = `
       <i class="bi bi-building me-1"></i>${escapeHtml(c.name)}
-      <button class="compare-pill-remove ms-2" aria-label="Remove ${escapeHtml(c.name)}"
+      <button type="button" class="compare-pill-remove ms-2" aria-label="Remove ${escapeHtml(c.name)}"
               data-id="${c.id}">×</button>`;
     pill.querySelector(".compare-pill-remove").addEventListener("click", () => {
       removeCollege(c.id);
@@ -254,17 +330,23 @@ function updateActionBar() {
   const count = selectedColleges.length;
   const atMax = count >= MAX_COLLEGES;
 
-  addCollegeBtn.disabled = atMax;
-  addCollegeBtn.classList.toggle("disabled", atMax);
-  maxReachedMsg.classList.toggle("d-none", !atMax);
+  if (addCollegeBtn) {
+    addCollegeBtn.disabled = atMax;
+    addCollegeBtn.classList.toggle("disabled", atMax);
+  }
+  if (maxReachedMsg) {
+    maxReachedMsg.classList.toggle("d-none", !atMax);
+  }
 
   /* Show Compare Now button when ≥ 2 colleges are selected */
-  if (count >= MIN_COLLEGES) {
-    compareBtn.classList.remove("d-none");
-    compareBtn.textContent = "";
-    compareBtn.innerHTML = `<i class="bi bi-bar-chart-steps me-1"></i>Compare (${count})`;
-  } else {
-    compareBtn.classList.add("d-none");
+  if (compareBtn) {
+    if (count >= MIN_COLLEGES) {
+      compareBtn.classList.remove("d-none");
+      compareBtn.textContent = "";
+      compareBtn.innerHTML = `<i class="bi bi-bar-chart-steps me-1"></i>Compare (${count})`;
+    } else {
+      compareBtn.classList.add("d-none");
+    }
   }
 }
 
@@ -273,13 +355,13 @@ async function runComparison() {
   if (selectedColleges.length < MIN_COLLEGES) return;
 
   /* Show comparison section, hide empty state */
-  comparisonSection.classList.remove("d-none");
-  emptyState.classList.add("d-none");
+  if (comparisonSection) comparisonSection.classList.remove("d-none");
+  if (emptyState) emptyState.classList.add("d-none");
 
   /* Show loader, hide old results */
-  compareLoading.classList.remove("d-none");
-  compareTableCard.classList.add("d-none");
-  aiSummaryCard.classList.add("d-none");
+  if (compareLoading) compareLoading.classList.remove("d-none");
+  if (compareTableCard) compareTableCard.classList.add("d-none");
+  if (aiSummaryCard) aiSummaryCard.classList.add("d-none");
 
   const ids = selectedColleges.map((c) => c.id);
 
@@ -291,31 +373,35 @@ async function runComparison() {
     });
     const data = await res.json();
 
-    compareLoading.classList.add("d-none");
+    if (compareLoading) compareLoading.classList.add("d-none");
 
     if (data.error) {
-      showToast(data.error, "danger");
+      if (typeof showToast === "function") {
+        showToast(data.error, "danger");
+      }
       return;
     }
 
-    renderComparisonTable(data.colleges);
-    renderAISummary(data.summary);
+    renderComparisonTable(data.colleges || []);
+    renderAISummary(data.summary || "");
 
   } catch (err) {
-    compareLoading.classList.add("d-none");
-    showToast("Failed to load comparison data. Please try again.", "danger");
+    if (compareLoading) compareLoading.classList.add("d-none");
+    if (typeof showToast === "function") {
+      showToast("Failed to load comparison data. Please try again.", "danger");
+    }
   }
 }
 
 /* ── Hide comparison results ─────────────────────────────────────────── */
 function hideComparisonResults() {
-  comparisonSection.classList.add("d-none");
-  emptyState.classList.remove("d-none");
+  if (comparisonSection) comparisonSection.classList.add("d-none");
+  if (emptyState) emptyState.classList.remove("d-none");
 }
 
 /* ── Build comparison table ──────────────────────────────────────────── */
 function renderComparisonTable(colleges) {
-  if (!colleges.length) return;
+  if (!colleges || !colleges.length || !compareThead || !compareTbody) return;
 
   /* ── Pre-compute best values for highlighting ── */
   const bestFees    = minVal(colleges, (c) => c.fees_raw > 0 ? c.fees_raw : Infinity);
@@ -401,7 +487,7 @@ function renderComparisonTable(colleges) {
       alt:   false,
       cells: colleges.map((c) => ({
         val:       c.branch_count,
-        display:   c.branch_count.toString(),
+        display:   (c.branch_count || 0).toString(),
         highlight: c.branch_count === mostBranch,
         tag:       null,
       })),
@@ -438,6 +524,7 @@ function renderComparisonTable(colleges) {
         highlight: false,
         tag:       null,
       })),
+    },
     {
       label: "Official Website",
       icon:  "bi-globe2",
@@ -492,11 +579,14 @@ function renderComparisonTable(colleges) {
       ${actionCells}
     </tr>`;
 
-  compareTableCard.classList.remove("d-none");
+  if (compareTableCard) {
+    compareTableCard.classList.remove("d-none");
+  }
 }
 
 /* ── Render AI Summary ───────────────────────────────────────────────── */
 function renderAISummary(summary) {
+  if (!aiSummaryCard || !aiSummaryBody) return;
   if (!summary) {
     aiSummaryCard.classList.add("d-none");
     return;
@@ -550,7 +640,7 @@ function restoreFromStorage() {
 
 /* ── Utility: compute min/max across an array by accessor ────────────── */
 function minVal(arr, accessor) {
-  const vals = arr.map(accessor).filter((v) => v !== Infinity && v > 0);
+  const vals = arr.map(accessor).filter((v) => v !== Infinity && v !== null && v > 0);
   return vals.length ? Math.min(...vals) : null;
 }
 

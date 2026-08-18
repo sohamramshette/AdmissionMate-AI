@@ -117,7 +117,11 @@ def compare_colleges(college_ids: list[int]) -> list[dict[str, Any]]:
     results: list[dict[str, Any]] = []
 
     for cid in college_ids:
-        subset = df[df[COL_ID] == int(cid)]
+        try:
+            cid_int = int(cid)
+        except (ValueError, TypeError):
+            continue
+        subset = df[df[COL_ID] == cid_int]
         if subset.empty:
             continue
 

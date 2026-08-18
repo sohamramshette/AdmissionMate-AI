@@ -610,7 +610,7 @@
               <h6>Actions & Tools</h6>
             </div>
             <div class="info-card-body d-grid gap-2">
-              <a href="{{ url_for('compare') }}" class="btn btn-primary-custom btn-sm">
+              <a href="{{ url_for('compare', add=college.college_id) }}" class="btn btn-primary-custom btn-sm">
                 <i class="bi bi-bar-chart-steps me-2"></i>Compare with Other Colleges
               </a>
               <a href="{{ url_for('chatbot') }}" class="btn btn-outline-primary btn-sm rounded-pill fw-600">

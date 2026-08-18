@@ -402,16 +402,15 @@ class CollegeAdmissionAgent:
 
         lines = ["Here is a side-by-side comparison:\n"]
         fields = [
+            ("College Name",     "name"),
             ("City",             "city"),
-            ("Branch",           "branch"),
-            ("Cutoff",           "cutoff"),
-            ("Annual Fees",      "fees"),
-            ("NAAC Grade",       "naac"),
-            ("NBA Accredited",   "nba"),
-            ("Avg Placement",    "placement"),
-            ("Intake",           "intake"),
-            ("Established",      "estd"),
-            ("Type",             "type"),
+            ("Home University",  "home_university"),
+            ("OPEN Cutoff",      "cutoff_open_display"),
+            ("SC Cutoff",        "cutoff_sc_display"),
+            ("OBC Cutoff",       "cutoff_obc_display"),
+            ("Annual Fees",      "fees_display"),
+            ("Branches",         "branches_display"),
+            ("Total Intake",     "intake"),
         ]
         for label, key in fields:
             row_parts = [f"{label:<18}"]
