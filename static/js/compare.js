@@ -438,6 +438,19 @@ function renderComparisonTable(colleges) {
         highlight: false,
         tag:       null,
       })),
+    {
+      label: "Official Website",
+      icon:  "bi-globe2",
+      alt:   false,
+      cells: colleges.map((c) => ({
+        val:       null,
+        display:   c.website && c.website.url
+          ? `<a href="${c.website.url}" target="_blank" rel="noopener noreferrer" class="badge rounded-pill text-bg-light border text-primary text-decoration-none px-2 py-1 shadow-sm"><i class="bi bi-box-arrow-up-right me-1 text-muted"></i>${escapeHtml(c.website.domain)}</a>`
+          : "N/A",
+        isHtml:    true,
+        highlight: false,
+        tag:       null,
+      })),
     },
   ];
 
@@ -448,7 +461,8 @@ function renderComparisonTable(colleges) {
       const tagHtml = cell.tag
         ? `<span class="compare-best-badge ms-1">${cell.tag}</span>`
         : "";
-      return `<td class="text-center ${hlClass}">${escapeHtml(cell.display)}${tagHtml}</td>`;
+      const content = cell.isHtml ? cell.display : escapeHtml(cell.display);
+      return `<td class="text-center ${hlClass}">${content}${tagHtml}</td>`;
     }).join("");
 
     const rowBg = row.alt ? 'style="background:rgba(79,70,229,0.025)"' : "";

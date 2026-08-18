@@ -22,6 +22,7 @@ from services.dataset import (
     COL_ID, COL_NAME, COL_BRANCH, COL_CATEGORY,
     COL_CUTOFF, COL_FEES, COL_INTAKE, COL_HOME_UNIV, COL_CITY,
 )
+from services.college_websites import get_college_website
 
 logger = logging.getLogger(__name__)
 
@@ -182,6 +183,7 @@ def compare_colleges(college_ids: list[int]) -> list[dict[str, Any]]:
             "branches_display":    ", ".join(branches[:3]) + ("…" if len(branches) > 3 else ""),
             "intake":              total_intake,
             "categories":          categories,
+            "website":             get_college_website(name, str(cid)),
         })
 
     return results

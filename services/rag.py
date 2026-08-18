@@ -34,6 +34,7 @@ from services.dataset import (
     load_dataset,
     search_college,
 )
+from services.college_websites import get_college_website
 from services.watsonx import chat
 
 logger = logging.getLogger(__name__)
@@ -343,8 +344,11 @@ def _build_context(colleges: list[dict[str, Any]]) -> str:
     lines: list[str] = []
     for i, college in enumerate(colleges, start=1):
         nba = "Yes" if str(college.get("nba_accredited", "")).lower() == "yes" else "No"
+        c_name = str(college.get("name", "N/A"))
+        c_id = str(college.get("college_id", ""))
+        site_info = get_college_website(c_name, c_id)
         lines.append(
-            f"[{i}] {college.get('name', 'N/A')}  ({college.get('college_id', '')})\n"
+            f"[{i}] {c_name}  ({c_id})\n"
             f"    City       : {college.get('city', 'N/A')}\n"
             f"    Branch     : {college.get('branch', 'N/A')}\n"
             f"    Category   : {college.get('category', 'N/A')}\n"
@@ -355,6 +359,7 @@ def _build_context(colleges: list[dict[str, Any]]) -> str:
             f"    Placement  : {college.get('avg_placement_lpa', 'N/A')} LPA (avg)\n"
             f"    University : {college.get('university', 'N/A')}\n"
             f"    Type       : {college.get('type', 'N/A')}\n"
+            f"    Website    : {site_info.get('url', 'N/A')}\n"
         )
 
     return "\n".join(lines)

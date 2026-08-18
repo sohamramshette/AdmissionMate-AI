@@ -19,41 +19,59 @@
         </div>
         <div class="cb-header-info">
           <div class="cb-header-name">
-            Admission AI
-            <span class="cb-online-dot" title="Online"></span>
+            Admission AI Assistant
+            <span class="cb-online-dot" title="Online & Ready"></span>
           </div>
-          <div class="cb-header-sub">IBM Watsonx Granite 4 &bull; Always online</div>
+          <div class="cb-header-sub">
+            <span class="d-none d-sm-inline">Powered by IBM Watsonx AI Granite &bull; </span>MHT-CET Knowledge Base
+          </div>
         </div>
-        <button id="clear-chat-btn" class="cb-header-btn" title="Clear conversation" aria-label="Clear conversation">
-          <i class="bi bi-trash3"></i>
-          <span>Clear Chat</span>
+        <div class="cb-header-actions d-flex gap-2">
+          <button id="shuffle-prompts-btn" class="cb-header-btn" title="Shuffle suggestion questions" aria-label="Shuffle suggestions">
+            <i class="bi bi-arrow-repeat"></i>
+            <span class="d-none d-md-inline">Shuffle</span>
+          </button>
+          <button id="clear-chat-btn" class="cb-header-btn" title="Clear conversation" aria-label="Clear conversation">
+            <i class="bi bi-trash3"></i>
+            <span class="d-none d-md-inline">Clear</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- ── AI Assistant Mode Switcher ────────────────────── -->
+      <div class="cb-mode-bar">
+        <button type="button" class="cb-mode-tab active" data-mode="admission" id="tab-mode-admission">
+          <i class="bi bi-mortarboard-fill me-1"></i> College & Cutoff AI
+        </button>
+        <button type="button" class="cb-mode-tab" data-mode="documents" id="tab-mode-documents">
+          <i class="bi bi-file-earmark-check-fill me-1"></i> Document & Verification AI
         </button>
       </div>
 
       <!-- Message area -->
       <div id="chat-messages" class="cb-messages" role="log" aria-live="polite" aria-label="Chat messages">
 
-        <!-- Welcome message (server-rendered for instant display) -->
+        <!-- Welcome message -->
         <div class="cb-msg-row cb-msg-row--bot">
           <div class="cb-msg-avatar">
             <i class="bi bi-robot"></i>
           </div>
           <div class="cb-msg-group">
             <div class="cb-bubble cb-bubble--bot">
-              <p>👋 Hi there! I'm your <strong>College Admission Assistant</strong>.</p>
-              <p>I can help you with:</p>
-              <ul>
-                <li>Finding colleges based on your CET percentile</li>
-                <li>Understanding cutoff trends</li>
-                <li>Comparing branches and career paths</li>
-                <li>Scholarship and fee information</li>
+              <p class="fw-bold mb-2">👋 Welcome to AdmissionMate AI!</p>
+              <p class="mb-2">I can assist you with your entire Maharashtra Engineering & Pharmacy admission journey:</p>
+              <ul class="mb-2">
+                <li><strong>Cutoff Analysis:</strong> Check college & branch cutoffs for your category</li>
+                <li><strong>College Comparisons:</strong> Compare COEP, VJTI, PICT, SPIT, VIT, etc.</li>
+                <li><strong>CAP Rounds & Rules:</strong> Step-by-step guidance on option form & seat allocation</li>
+                <li><strong>Fees & Scholarships:</strong> TFWS, EWS, and government fee concession rules</li>
               </ul>
-              <p class="mb-0">What would you like to know? 🎓</p>
+              <p class="mb-0 text-muted small"><i class="bi bi-lightbulb me-1 text-warning"></i> Click any suggestion below or type your question!</p>
               <button
                 class="cb-copy-btn"
                 title="Copy response"
                 aria-label="Copy response"
-                data-copy-text="Hi there! I'm your College Admission Assistant. I can help you with finding colleges based on your CET percentile, understanding cutoff trends, comparing branches and career paths, and scholarship and fee information."
+                data-copy-text="Welcome to AdmissionMate AI! I can assist you with your entire Maharashtra Engineering & Pharmacy admission journey including Cutoff Analysis, College Comparisons, CAP Rounds & Rules, and Fees & Scholarships."
               >
                 <i class="bi bi-clipboard"></i> Copy
               </button>
@@ -64,53 +82,41 @@
 
       </div><!-- /cb-messages -->
 
+      <!-- ── Persistent Suggested Prompts Dock ────────────── -->
+      <div class="cb-suggestions-dock" id="suggestions-dock">
+        <div class="cb-suggestions-header">
+          <span class="cb-suggestions-title">
+            <i class="bi bi-stars text-warning"></i> Quick Suggestions:
+          </span>
+          <button type="button" class="cb-shuffle-link" id="btn-quick-shuffle" title="Rotate suggestions">
+            <i class="bi bi-arrow-clockwise me-1"></i> New Ideas
+          </button>
+        </div>
+        <div id="prompt-chips" class="cb-chips-scroll" role="group" aria-label="Suggested prompts">
+          <!-- Dynamically populated and maintained by chatbot.js -->
+        </div>
+      </div>
+
       <!-- Input bar -->
       <form id="chat-form" class="cb-form" autocomplete="off" novalidate>
         <div class="cb-input-bar">
           <textarea
             id="chat-input"
             rows="1"
-            placeholder="Ask about colleges, cutoffs, fees, branches…"
+            placeholder="Ask about colleges, cutoff percentiles, branches, CAP rounds…"
             aria-label="Chat message input"
           ></textarea>
           <button id="send-btn" type="submit" class="cb-send-btn" title="Send (Enter)" aria-label="Send message">
             <i class="bi bi-send-fill"></i>
           </button>
         </div>
-        <p class="cb-input-hint">
-          <kbd>Enter</kbd> to send &nbsp;&bull;&nbsp; <kbd>Shift+Enter</kbd> for new line
-        </p>
+        <div class="cb-input-footer">
+          <span><kbd>Enter</kbd> to send &nbsp;&bull;&nbsp; <kbd>Shift+Enter</kbd> for new line</span>
+          <span class="cb-model-tag"><i class="bi bi-cpu me-1"></i>IBM Watsonx AI</span>
+        </div>
       </form>
 
     </div><!-- /cb-card -->
-
-    <!-- ── Suggested prompts ───────────────────────────────── -->
-    <div class="cb-prompts-section">
-      <p class="cb-prompts-label">
-        <i class="bi bi-lightbulb"></i> Suggested questions
-      </p>
-      <div id="prompt-chips" class="cb-chips">
-        {% set suggestions = [
-          ("Compare COEP and PICT",        "Compare COEP and PICT colleges — fees, placements, and rankings"),
-          ("95 percentile colleges",        "Suggest best engineering colleges for 95 percentile in OPEN category"),
-          ("Explain CAP Round",             "Explain the CAP Round process for Maharashtra engineering admissions"),
-          ("Best AI & DS colleges",         "Which colleges offer the best Artificial Intelligence and Data Science programs in Maharashtra?"),
-          ("VJTI CS cutoff",                "What is the last year cutoff for VJTI Computer Engineering?"),
-          ("Scholarship information",       "What scholarships are available for OBC students in Maharashtra engineering colleges?"),
-        ] %}
-        {% for label, msg in suggestions %}
-          <button class="cb-chip" data-msg="{{ msg }}" aria-label="Ask: {{ label }}">
-            {{ label }}
-          </button>
-        {% endfor %}
-      </div>
-    </div>
-
-    <!-- Model badge -->
-    <div class="cb-model-badge">
-      <i class="bi bi-cpu"></i>
-      IBM Watsonx &bull; Granite-4 &bull; AI Assistant
-    </div>
 
   </div><!-- /cb-container -->
 </div><!-- /cb-page -->

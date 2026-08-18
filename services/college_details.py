@@ -35,6 +35,7 @@ from services.dataset import (
     COL_CITY, COL_DISTRICT, COL_UNIV, COL_TYPE,
     COL_HOME_UNIV,
 )
+from services.college_websites import get_college_website
 from services.watsonx import chat
 
 logger = logging.getLogger(__name__)
@@ -239,6 +240,8 @@ def get_college_profile(college_id: str) -> dict[str, Any] | None:
         "ai_oneliner":       ai_oneliner,
         # AI content
         "ai_summary":        ai_summary,
+        # Official website metadata
+        "website":           get_college_website(college_name, college_id),
     }
 
 

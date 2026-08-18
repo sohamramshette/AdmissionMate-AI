@@ -60,6 +60,7 @@ from services.dataset import (
     COL_ID, COL_NAME, COL_CITY, COL_BRANCH, COL_CATEGORY,
     COL_CUTOFF, COL_FEES,
 )
+from services.college_websites import get_college_website
 from services.watsonx import chat, summarize_recommendations
 
 logger = logging.getLogger(__name__)
@@ -366,6 +367,8 @@ def _build_result(
                                    ),
         # AI explanation placeholder — populated by _attach_ai_explanations()
         "ai_explanation":          "",
+        # Official website metadata
+        "website":                 get_college_website(college_name, college_id),
         # Extra metadata (available for future use; not breaking the template)
         "score_gap":               gap,
     }

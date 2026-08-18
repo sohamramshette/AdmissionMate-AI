@@ -454,14 +454,19 @@ def create_app(config_class=Config):
         """
         payload = request.get_json(silent=True) or {}
         user_message = payload.get("message", "").strip()
+        mode = payload.get("mode", "admission").strip().lower()
 
         if not user_message:
             return jsonify({"error": "Empty message"}), 400
 
-        from services.rag import rag_chat
+        if mode in ("document", "documents", "doc"):
+            from services.document_ai import document_ai_chat
+            reply = document_ai_chat(user_message)
+        else:
+            from services.rag import rag_chat
+            reply = rag_chat(user_message)
 
-        reply = rag_chat(user_message)
-        return jsonify({"reply": reply})
+        return jsonify({"reply": reply, "mode": mode})
 
     return app
 
