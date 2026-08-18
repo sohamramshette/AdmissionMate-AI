@@ -21,11 +21,67 @@
 <section class="py-5">
   <div class="container">
     <div class="row justify-content-center">
-      <div class="col-lg-7 col-xl-6">
+      <div class="col-lg-8 col-xl-7">
+
+        {# ── Profile Sync Card (if profile exists) ───────────── #}
+        {% if saved_profile and (saved_profile.name or saved_profile.cet_percentile) %}
+        <div class="card border-0 text-white p-3 mb-4 rounded-4 shadow-sm fade-in-up" style="background: linear-gradient(135deg, #1e1b4b 0%, #4338ca 100%);">
+          <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+            <div class="d-flex align-items-center gap-3">
+              <div class="rounded-circle bg-white text-primary d-flex align-items-center justify-content-center fw-bold fs-4 shadow-sm" style="width: 52px; height: 52px; flex-shrink:0;">
+                {{ (saved_profile.name[0] if saved_profile.name else 'S') | upper }}
+              </div>
+              <div>
+                <div class="d-flex align-items-center gap-2">
+                  <span class="fw-bold text-white fs-6">{{ saved_profile.name or 'Saved Profile' }}</span>
+                  <span class="badge bg-success-subtle text-success border border-success-subtle small py-0 px-2" style="font-size:0.75rem;">Profile Linked</span>
+                </div>
+                <div class="small text-white-50 mt-1 d-flex flex-wrap gap-2">
+                  {% if saved_profile.cet_percentile %}
+                  <span class="badge bg-white bg-opacity-25">{{ saved_profile.cet_percentile }} %ile</span>
+                  {% endif %}
+                  <span class="badge bg-white bg-opacity-25">{{ saved_profile.category or 'OPEN' }}</span>
+                  {% if saved_profile.preferred_city %}
+                  <span class="badge bg-white bg-opacity-25">{{ saved_profile.preferred_city }}</span>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+            <div class="d-flex flex-wrap gap-2 ms-auto">
+              <button type="button" class="btn btn-light btn-sm rounded-pill px-3 fw-bold text-primary shadow-sm" onclick="syncSavedProfile()">
+                <i class="bi bi-arrow-repeat me-1"></i> Sync & Auto-Fill
+              </button>
+              <button type="submit" form="student-form" class="btn btn-warning btn-sm rounded-pill px-3 fw-bold text-dark shadow-sm">
+                <i class="bi bi-stars me-1"></i> Instant Search
+              </button>
+            </div>
+          </div>
+        </div>
+        {% else %}
+        <div class="alert alert-info border-0 rounded-4 shadow-sm p-3 mb-4 d-flex align-items-center justify-content-between fade-in-up">
+          <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-person-badge fs-4 text-primary"></i>
+            <div>
+              <div class="fw-bold text-dark small">Want to save your scores & documents?</div>
+              <div class="text-muted small">Create your complete profile once and sync it anywhere.</div>
+            </div>
+          </div>
+          <a href="{{ url_for('profile') }}" class="btn btn-sm btn-primary rounded-pill px-3">
+            <i class="bi bi-pencil-square me-1"></i> Setup Profile
+          </a>
+        </div>
+        {% endif %}
 
         <div class="form-card fade-in-up">
-          <h4 class="fw-800 mb-1">Student Profile</h4>
-          <p class="text-muted small mb-4">All fields are required. Your data is not stored permanently.</p>
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+              <h4 class="fw-800 mb-0">Student Profile & Filter</h4>
+              <p class="text-muted small mb-0">Fill in or sync your details to get AI-curated college matches.</p>
+            </div>
+            <a href="{{ url_for('profile') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+              <i class="bi bi-person-gear me-1"></i> Full Profile
+            </a>
+          </div>
 
           <form id="student-form"
                 method="POST"
@@ -34,8 +90,8 @@
 
             {# ── Full Name ──────────────────────────────────── #}
             <div class="mb-4">
-              <label class="form-label" for="name">
-                <i class="bi bi-person me-1 text-primary"></i>Full Name
+              <label class="form-label fw-semibold" for="name">
+                <i class="bi bi-person me-1 text-primary"></i>Full Name <span class="text-danger">*</span>
               </label>
               <input
                 type="text"
@@ -185,8 +241,8 @@
 
           {# Info note #}
           <p class="text-center text-muted mt-3 small">
-            <i class="bi bi-lock me-1"></i>
-            Your information is only used to generate recommendations and is never stored.
+            <i class="bi bi-shield-check me-1 text-success"></i>
+            Profile is synced securely for instant cutoff ranking and analysis.
           </p>
         </div>
 
@@ -195,4 +251,47 @@
   </div>
 </section>
 
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // Saved profile data injected from server
+  const savedProfileData = {{ (saved_profile or {}) | tojson }};
+
+  function syncSavedProfile() {
+    if (!savedProfileData || Object.keys(savedProfileData).length === 0) return;
+
+    if (savedProfileData.name) {
+      document.getElementById('name').value = savedProfileData.name;
+    }
+    if (savedProfileData.cet_percentile) {
+      document.getElementById('cet_percentile').value = savedProfileData.cet_percentile;
+    }
+    if (savedProfileData.category) {
+      const catSelect = document.getElementById('category');
+      if (catSelect) catSelect.value = savedProfileData.category;
+    }
+    if (savedProfileData.preferred_branch) {
+      const branchSelect = document.getElementById('preferred_branch');
+      if (branchSelect) branchSelect.value = savedProfileData.preferred_branch;
+    }
+    if (savedProfileData.preferred_city) {
+      const citySelect = document.getElementById('preferred_city');
+      if (citySelect) citySelect.value = savedProfileData.preferred_city;
+    }
+
+    // Highlight inputs briefly to show sync effect
+    ['name', 'cet_percentile', 'category', 'preferred_branch', 'preferred_city'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.classList.add('border-primary', 'bg-light');
+        setTimeout(() => el.classList.remove('border-primary', 'bg-light'), 1200);
+      }
+    });
+
+    if (typeof showToast === 'function') {
+      showToast('Profile Synced', 'Your profile details have been auto-filled!', 'success');
+    }
+  }
+</script>
 {% endblock %}

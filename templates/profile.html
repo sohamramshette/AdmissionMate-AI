@@ -1,0 +1,772 @@
+{# ============================================================
+profile.html — Student Profile Hub & Admission Dashboard
+============================================================ #}
+{% extends "base.html" %}
+
+{% block extra_css %}
+<style>
+  .profile-header-card {
+    background: linear-gradient(135deg, #1e1b4b 0%, #312e81 40%, #4338ca 100%);
+    border-radius: var(--radius-lg);
+    color: #fff;
+    padding: 2.5rem 2rem;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(67, 56, 202, 0.25);
+  }
+
+  .profile-header-card::before {
+    content: "";
+    position: absolute;
+    top: -50px;
+    right: -50px;
+    width: 220px;
+    height: 220px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.08);
+  }
+
+  .profile-avatar {
+    width: 84px;
+    height: 84px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #0ea5e9, #6366f1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: #fff;
+    border: 3px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  }
+
+  .nav-pills-custom .nav-link {
+    color: #475569;
+    font-weight: 600;
+    padding: 0.85rem 1.25rem;
+    border-radius: 0.75rem;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    border: 1px solid transparent;
+  }
+
+  .nav-pills-custom .nav-link:hover {
+    color: var(--primary);
+    background: #f1f5f9;
+  }
+
+  .nav-pills-custom .nav-link.active {
+    color: #fff;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
+  }
+
+  .section-box {
+    background: #ffffff;
+    border-radius: var(--radius-lg);
+    border: 1px solid #e2e8f0;
+    padding: 2rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+  }
+
+  .stat-pill {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 999px;
+    padding: 0.35rem 0.9rem;
+    font-size: 0.85rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .doc-check-item {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.75rem;
+    padding: 1rem 1.25rem;
+    transition: all 0.2s ease;
+  }
+
+  .doc-check-item:hover {
+    border-color: #cbd5e1;
+    background: #f1f5f9;
+  }
+
+  .progress-custom {
+    height: 10px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.2);
+  }
+
+  .progress-bar-custom {
+    border-radius: 999px;
+    background: linear-gradient(90deg, #10b981, #06b6d4);
+  }
+
+  .quick-action-btn {
+    border-radius: 0.75rem;
+    padding: 0.9rem 1.25rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    transition: all 0.2s ease;
+  }
+
+  .quick-action-btn:hover {
+    transform: translateY(-2px);
+  }
+
+  @media print {
+
+    .navbar,
+    footer,
+    .nav-pills-custom,
+    .quick-actions-col,
+    .btn-no-print {
+      display: none !important;
+    }
+
+    .profile-header-card {
+      background: #312e81 !important;
+      color: #fff !important;
+      -webkit-print-color-adjust: exact;
+    }
+
+    .tab-pane {
+      display: block !important;
+      opacity: 1 !important;
+      margin-bottom: 2rem;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+
+{# ── Header / Banner ─────────────────────────────────────── #}
+<div class="page-banner py-4">
+  <div class="container">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+      <div>
+        <h1 class="h3 mb-1"><i class="bi bi-person-badge me-2"></i>Student Admission Profile</h1>
+        <p class="mb-0 text-white-50">Manage your academic credentials, preferences, and CAP round readiness.</p>
+      </div>
+      <div class="d-flex gap-2">
+        <button type="button" class="btn btn-light btn-sm rounded-pill px-3 shadow-sm btn-no-print"
+          onclick="window.print()">
+          <i class="bi bi-printer me-1"></i> Print / Save PDF
+        </button>
+        <a href="{{ url_for('profile_reset') }}" class="btn btn-outline-light btn-sm rounded-pill px-3 btn-no-print"
+          onclick="return confirm('Are you sure you want to reset your saved profile?');">
+          <i class="bi bi-arrow-counterclockwise me-1"></i> Reset
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="container my-5">
+  <div class="row g-4">
+
+    {# ── Left Column: Profile Summary & Quick Actions ─────── #}
+    <div class="col-lg-4 quick-actions-col">
+      {# Profile Card #}
+      <div class="profile-header-card mb-4 fade-in-up">
+        <div class="d-flex align-items-center gap-3 mb-4">
+          <div class="profile-avatar">
+            {{ (profile.name[0] if profile.name else 'S') | upper }}
+          </div>
+          <div>
+            <h4 class="fw-bold mb-0 text-white">{{ profile.name or 'Student Profile' }}</h4>
+            <div class="text-white-50 small mt-1">
+              <i class="bi bi-award me-1"></i> MHT-CET 2026 Candidate
+            </div>
+          </div>
+        </div>
+
+        {# Percentile & Category Chips #}
+        <div class="d-flex flex-wrap gap-2 mb-4">
+          <span class="stat-pill">
+            <i class="bi bi-percent text-warning"></i>
+            <strong>{{ profile.cet_percentile or '--' }}</strong> %ile
+          </span>
+          <span class="stat-pill">
+            <i class="bi bi-tag text-info"></i>
+            {{ profile.category or 'General / OPEN' }}
+          </span>
+          {% if profile.preferred_city %}
+          <span class="stat-pill">
+            <i class="bi bi-geo-alt text-danger"></i>
+            {{ profile.preferred_city }}
+          </span>
+          {% endif %}
+        </div>
+
+        {# Completion Meter #}
+        <div class="mb-2">
+          <div class="d-flex justify-content-between small text-white-50 mb-1">
+            <span>Profile Completion</span>
+            <span class="fw-bold text-white">{{ completion_score }}%</span>
+          </div>
+          <div class="progress progress-custom">
+            <div class="progress-bar progress-bar-custom" role="progressbar" style="width: {{ completion_score }}%;"
+              aria-valuenow="{{ completion_score }}" aria-valuemin="0" aria-valuemax="100"></div>
+          </div>
+        </div>
+        {% if completion_score < 100 %} <p class="small text-white-50 mb-0 mt-2">
+          <i class="bi bi-info-circle me-1"></i> Complete all details for the most accurate college recommendations.
+          </p>
+          {% else %}
+          <p class="small text-success-light mb-0 mt-2">
+            <i class="bi bi-check-circle-fill me-1 text-success"></i> Profile is complete and ready for CAP rounds!
+          </p>
+          {% endif %}
+      </div>
+
+      {# Quick Action Hub #}
+      <div class="section-box mb-4 fade-in-up delay-1">
+        <h6 class="fw-bold text-uppercase text-muted small mb-3 tracking-wide">
+          <i class="bi bi-lightning-charge-fill text-warning me-1"></i> AI Admission Tools
+        </h6>
+        <div class="d-flex flex-column gap-2">
+          <a href="{{ url_for('recommendations') }}" class="btn btn-outline-primary quick-action-btn text-start">
+            <i class="bi bi-stars fs-5 text-primary"></i>
+            <div>
+              <div class="fw-bold">College Recommendations</div>
+              <div class="text-muted small">View ranked colleges matching this profile</div>
+            </div>
+          </a>
+          <a href="{{ url_for('cap_generator') }}" class="btn btn-outline-indigo quick-action-btn text-start"
+            style="border:1px solid #c7d2fe; color:#4338ca;">
+            <i class="bi bi-list-ol fs-5 text-indigo"></i>
+            <div>
+              <div class="fw-bold">AI CAP Option Generator</div>
+              <div class="text-muted small">Auto-generate 300-choice option list</div>
+            </div>
+          </a>
+          <a href="{{ url_for('branch_advisor') }}" class="btn btn-outline-secondary quick-action-btn text-start">
+            <i class="bi bi-compass fs-5 text-secondary"></i>
+            <div>
+              <div class="fw-bold">Branch Selector Quiz</div>
+              <div class="text-muted small">Discover best engineering branch for you</div>
+            </div>
+          </a>
+          <a href="{{ url_for('compare') }}" class="btn btn-outline-info quick-action-btn text-start">
+            <i class="bi bi-bar-chart-steps fs-5 text-info"></i>
+            <div>
+              <div class="fw-bold">Compare Colleges</div>
+              <div class="text-muted small">Side-by-side cutoff & fee comparison</div>
+            </div>
+          </a>
+          <a href="{{ url_for('chatbot') }}" class="btn btn-outline-dark quick-action-btn text-start">
+            <i class="bi bi-chat-dots-fill fs-5 text-dark"></i>
+            <div>
+              <div class="fw-bold">Ask Watsonx AI</div>
+              <div class="text-muted small">Get answers about Maharashtra CAP cutoffs</div>
+            </div>
+          </a>
+        </div>
+      </div>
+
+      {# Admission Readiness Summary #}
+      <div class="section-box fade-in-up delay-2">
+        <h6 class="fw-bold text-uppercase text-muted small mb-3">
+          <i class="bi bi-shield-check text-success me-1"></i> Quick Checklist
+        </h6>
+        <ul class="list-unstyled mb-0 small d-flex flex-column gap-2">
+          <li class="d-flex align-items-center justify-content-between">
+            <span><i class="bi bi-check2-circle text-primary me-2"></i>Percentile Added:</span>
+            <span
+              class="badge {% if profile.cet_percentile %}bg-success-subtle text-success{% else %}bg-warning-subtle text-warning{% endif %}">
+              {{ 'Yes' if profile.cet_percentile else 'Pending' }}
+            </span>
+          </li>
+          <li class="d-flex align-items-center justify-content-between">
+            <span><i class="bi bi-check2-circle text-primary me-2"></i>Branch Chosen:</span>
+            <span
+              class="badge {% if profile.preferred_branch %}bg-success-subtle text-success{% else %}bg-warning-subtle text-warning{% endif %}">
+              {{ profile.preferred_branch or 'Pending' }}
+            </span>
+          </li>
+          <li class="d-flex align-items-center justify-content-between">
+            <span><i class="bi bi-check2-circle text-primary me-2"></i>Target City:</span>
+            <span
+              class="badge {% if profile.preferred_city %}bg-success-subtle text-success{% else %}bg-warning-subtle text-warning{% endif %}">
+              {{ profile.preferred_city or 'Any' }}
+            </span>
+          </li>
+          <li class="d-flex align-items-center justify-content-between">
+            <span><i class="bi bi-check2-circle text-primary me-2"></i>Category Verified:</span>
+            <span class="badge bg-info-subtle text-info">{{ profile.category or 'OPEN' }}</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    {# ── Right Column: Interactive Profile Tabs & Forms ───── #}
+    <div class="col-lg-8">
+      <div class="section-box fade-in-up">
+
+        {# Tabs Navigation #}
+        <ul class="nav nav-pills nav-pills-custom mb-4 border-bottom pb-3 gap-2" id="profileTabs" role="tablist">
+          <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="personal-tab" data-bs-toggle="pill" data-bs-target="#personal-pane"
+              type="button" role="tab">
+              <i class="bi bi-person"></i> Personal
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="academic-tab" data-bs-toggle="pill" data-bs-target="#academic-pane"
+              type="button" role="tab">
+              <i class="bi bi-award"></i> CET & Scores
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="pref-tab" data-bs-toggle="pill" data-bs-target="#pref-pane" type="button"
+              role="tab">
+              <i class="bi bi-sliders2"></i> Preferences
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="docs-tab" data-bs-toggle="pill" data-bs-target="#docs-pane" type="button"
+              role="tab">
+              <i class="bi bi-folder-check"></i> CAP Documents
+            </button>
+          </li>
+          {% if top_colleges %}
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="matches-tab" data-bs-toggle="pill" data-bs-target="#matches-pane" type="button"
+              role="tab">
+              <i class="bi bi-building"></i> Top Matches <span class="badge bg-primary rounded-pill ms-1">{{
+                top_colleges|length }}</span>
+            </button>
+          </li>
+          {% endif %}
+        </ul>
+
+        {# Main Profile Form #}
+        <form method="POST" action="{{ url_for('profile_save') }}" id="profileForm">
+          <div class="tab-content" id="profileTabContent">
+
+            {# ── TAB 1: Personal & Contact Details ───────────── #}
+            <div class="tab-pane fade show active" id="personal-pane" role="tabpanel">
+              <h5 class="fw-bold mb-3 text-dark"><i class="bi bi-person-circle text-primary me-2"></i>Personal &
+                Academic Information</h5>
+              <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold" for="name">Full Name <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control" id="name" name="name" placeholder="e.g. Rahul Sharma"
+                    value="{{ profile.name or '' }}" required>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold" for="email">Email Address</label>
+                  <input type="email" class="form-control" id="email" name="email"
+                    placeholder="e.g. rahul.sharma@example.com" value="{{ profile.email or '' }}">
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold" for="phone">Phone / WhatsApp Number</label>
+                  <input type="tel" class="form-control" id="phone" name="phone" placeholder="e.g. 9876543210"
+                    value="{{ profile.phone or '' }}">
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold" for="gender">Gender</label>
+                  <select class="form-select" id="gender" name="gender">
+                    <option value="" {% if not profile.gender %}selected{% endif %}>Select Gender</option>
+                    <option value="Male" {% if profile.gender=='Male' %}selected{% endif %}>Male</option>
+                    <option value="Female" {% if profile.gender=='Female' %}selected{% endif %}>Female (Eligible for 30%
+                      Women Quota)</option>
+                    <option value="Other" {% if profile.gender=='Other' %}selected{% endif %}>Other</option>
+                  </select>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold" for="application_id">MHT-CET Application ID / Roll No.</label>
+                  <input type="text" class="form-control" id="application_id" name="application_id"
+                    placeholder="e.g. EN24123456" value="{{ profile.application_id or '' }}">
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold" for="domicile">Candidature / Domicile Type</label>
+                  <select class="form-select" id="domicile" name="domicile">
+                    <option value="Maharashtra - Type A" {% if profile.domicile=='Maharashtra - Type A' or not
+                      profile.domicile %}selected{% endif %}>Maharashtra State - Type A (Birth/Domicile in MH)</option>
+                    <option value="Maharashtra - Type B" {% if profile.domicile=='Maharashtra - Type B' %}selected{%
+                      endif %}>Maharashtra State - Type B (Parents Domiciled in MH)</option>
+                    <option value="Maharashtra - Type C" {% if profile.domicile=='Maharashtra - Type C' %}selected{%
+                      endif %}>Maharashtra State - Type C (Govt of India Employee)</option>
+                    <option value="Maharashtra - Type D" {% if profile.domicile=='Maharashtra - Type D' %}selected{%
+                      endif %}>Maharashtra State - Type D (MH Govt Employee)</option>
+                    <option value="Maharashtra - Type E" {% if profile.domicile=='Maharashtra - Type E' %}selected{%
+                      endif %}>Maharashtra State - Type E (Disputed Border Area)</option>
+                    <option value="OMS (All India)" {% if profile.domicile=='OMS (All India)' %}selected{% endif %}>OMS
+                      (Outside Maharashtra / All India Candidate)</option>
+                    <option value="J&K Migrant" {% if profile.domicile=='J&K Migrant' %}selected{% endif %}>Jammu &
+                      Kashmir Migrant Candidate</option>
+                  </select>
+                </div>
+              </div>
+
+              <h6 class="fw-bold mb-3 text-dark border-top pt-3"><i
+                  class="bi bi-mortarboard text-secondary me-2"></i>Prior School & Board Scores</h6>
+              <div class="row g-3">
+                <div class="col-md-4">
+                  <label class="form-label fw-semibold" for="hsc_percentage">12th HSC Aggregate %</label>
+                  <input type="number" step="0.01" min="0" max="100" class="form-control" id="hsc_percentage"
+                    name="hsc_percentage" placeholder="e.g. 84.50" value="{{ profile.hsc_percentage or '' }}">
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label fw-semibold" for="pcm_marks">12th PCM Marks (/300)</label>
+                  <input type="number" min="0" max="300" class="form-control" id="pcm_marks" name="pcm_marks"
+                    placeholder="e.g. 245" value="{{ profile.pcm_marks or '' }}">
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label fw-semibold" for="ssc_percentage">10th SSC Aggregate %</label>
+                  <input type="number" step="0.01" min="0" max="100" class="form-control" id="ssc_percentage"
+                    name="ssc_percentage" placeholder="e.g. 89.20" value="{{ profile.ssc_percentage or '' }}">
+                </div>
+              </div>
+            </div>
+
+            {# ── TAB 2: CET & Scores ─────────────────────────── #}
+            <div class="tab-pane fade" id="academic-pane" role="tabpanel">
+              <h5 class="fw-bold mb-3 text-dark"><i class="bi bi-trophy text-warning me-2"></i>Entrance Exam Credentials
+              </h5>
+              <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold" for="cet_percentile">MHT-CET Overall Percentile <span
+                      class="text-danger">*</span></label>
+                  <div class="input-group">
+                    <input type="number" step="0.0001" min="0" max="100" class="form-control" id="cet_percentile"
+                      name="cet_percentile" placeholder="e.g. 94.6521" value="{{ profile.cet_percentile or '' }}"
+                      required>
+                    <span class="input-group-text">%ile</span>
+                  </div>
+                  <div class="form-text">Used for all CAP round cutoff matching.</div>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold" for="exam_group">MHT-CET Group</label>
+                  <select class="form-select" id="exam_group" name="exam_group">
+                    <option value="PCM" {% if profile.exam_group=='PCM' or not profile.exam_group %}selected{% endif %}>
+                      PCM (Physics, Chemistry, Mathematics - Engineering)</option>
+                    <option value="PCB" {% if profile.exam_group=='PCB' %}selected{% endif %}>PCB (Physics, Chemistry,
+                      Biology - Pharmacy/Bio)</option>
+                    <option value="PCMB" {% if profile.exam_group=='PCMB' %}selected{% endif %}>Both (PCMB)</option>
+                  </select>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold" for="jee_percentile">JEE Main Percentile (All India
+                    Seats)</label>
+                  <div class="input-group">
+                    <input type="number" step="0.0001" min="0" max="100" class="form-control" id="jee_percentile"
+                      name="jee_percentile" placeholder="e.g. 91.20" value="{{ profile.jee_percentile or '' }}">
+                    <span class="input-group-text">%ile</span>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold" for="category">Reservation Category <span
+                      class="text-danger">*</span></label>
+                  <select class="form-select" id="category" name="category" required>
+                    {% set categories = [
+                    ("OPEN", "OPEN / General"),
+                    ("OBC", "OBC — Other Backward Class"),
+                    ("SC", "SC — Scheduled Caste"),
+                    ("ST", "ST — Scheduled Tribe"),
+                    ("NT1", "NT1 — Nomadic Tribe 1 (NT-B)"),
+                    ("NT2", "NT2 — Nomadic Tribe 2 (NT-C)"),
+                    ("NT3", "NT3 — Nomadic Tribe 3 (NT-D)"),
+                    ("VJ", "VJ / DT — Vimukta Jati"),
+                    ("SEBC", "SEBC — Socially & Educationally Backward Class"),
+                    ("EWS", "EWS — Economically Weaker Section"),
+                    ("PWD", "PWD — Person with Disability"),
+                    ] %}
+                    {% for val, label in categories %}
+                    <option value="{{ val }}" {% if profile.category==val %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold" for="home_university">Home University / Region</label>
+                  <select class="form-select" id="home_university" name="home_university">
+                    <option value="">Select Home University</option>
+                    {% for univ in universities %}
+                    <option value="{{ univ }}" {% if profile.home_university==univ %}selected{% endif %}>{{ univ }}
+                    </option>
+                    {% endfor %}
+                  </select>
+                  <div class="form-text">Home University candidates get 70% HU quota allocation.</div>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold" for="annual_family_income">Annual Family Income</label>
+                  <select class="form-select" id="annual_family_income" name="annual_family_income">
+                    <option value="Below 2.5 Lakhs" {% if profile.annual_family_income=='Below 2.5 Lakhs' %}selected{%
+                      endif %}>Below ₹2.5 Lakhs (Full Scholarship Eligible)</option>
+                    <option value="2.5 to 8 Lakhs" {% if profile.annual_family_income=='2.5 to 8 Lakhs' %}selected{%
+                      endif %}>₹2.5 to ₹8 Lakhs (EBC / TFWS Eligible)</option>
+                    <option value="Above 8 Lakhs" {% if profile.annual_family_income=='Above 8 Lakhs' %}selected{% endif
+                      %}>Above ₹8 Lakhs</option>
+                  </select>
+                </div>
+              </div>
+
+              <h6 class="fw-bold mb-3 text-dark border-top pt-3"><i
+                  class="bi bi-bookmark-star text-info me-2"></i>Special Quota Eligibility</h6>
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <div class="form-check p-3 border rounded-3 bg-light">
+                    <input class="form-check-input" type="checkbox" id="tfws_eligible" name="tfws_eligible" value="yes"
+                      {% if profile.tfws_eligible=='yes' or profile.tfws_eligible==True %}checked{% endif %}>
+                    <label class="form-check-label fw-semibold ms-2" for="tfws_eligible">
+                      Apply under TFWS (Tuition Fee Waiver Scheme)
+                      <span class="d-block small text-muted font-normal">Income &lt; ₹8 Lakhs, 100% Tuition Fee
+                        waived</span>
+                    </label>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-check p-3 border rounded-3 bg-light">
+                    <input class="form-check-input" type="checkbox" id="defence_quota" name="defence_quota" value="yes"
+                      {% if profile.defence_quota=='yes' or profile.defence_quota==True %}checked{% endif %}>
+                    <label class="form-check-label fw-semibold ms-2" for="defence_quota">
+                      Defence Ward Quota (Def-1 / Def-2 / Def-3)
+                      <span class="d-block small text-muted font-normal">Children of Active/Ex-Service Defence
+                        personnel</span>
+                    </label>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-check p-3 border rounded-3 bg-light">
+                    <input class="form-check-input" type="checkbox" id="pwd_quota" name="pwd_quota" value="yes" {% if
+                      profile.pwd_quota=='yes' or profile.pwd_quota==True %}checked{% endif %}>
+                    <label class="form-check-label fw-semibold ms-2" for="pwd_quota">
+                      PWD / Divyangjan Quota (5% Seats)
+                      <span class="d-block small text-muted font-normal">Person with Disability certificate
+                        holder</span>
+                    </label>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-check p-3 border rounded-3 bg-light">
+                    <input class="form-check-input" type="checkbox" id="minority_quota" name="minority_quota"
+                      value="yes" {% if profile.minority_quota=='yes' or profile.minority_quota==True %}checked{% endif
+                      %}>
+                    <label class="form-check-label fw-semibold ms-2" for="minority_quota">
+                      Religious / Linguistic Minority (e.g. Hindi, Gujarati, Muslim)
+                      <span class="d-block small text-muted font-normal">Eligible for Minority Institute 51% quota
+                        seats</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {# ── TAB 3: Preferences ──────────────────────────── #}
+            <div class="tab-pane fade" id="pref-pane" role="tabpanel">
+              <h5 class="fw-bold mb-3 text-dark"><i class="bi bi-compass text-primary me-2"></i>Branch & Location
+                Preferences</h5>
+              <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold" for="preferred_branch">Primary Branch Preference <span
+                      class="text-danger">*</span></label>
+                  <select class="form-select" id="preferred_branch" name="preferred_branch" required>
+                    <option value="" disabled {% if not profile.preferred_branch %}selected{% endif %}>— Select branch —
+                    </option>
+                    {% set branches = [
+                    ("Computer Engineering", "Computer Engineering"),
+                    ("Information Technology", "Information Technology"),
+                    ("Electronics & Telecommunication","Electronics & Telecommunication (ENTC)"),
+                    ("Artificial Intelligence & DS", "Artificial Intelligence & Data Science (AI-DS)"),
+                    ("AIDS", "AI & Machine Learning"),
+                    ("Mechanical Engineering", "Mechanical Engineering"),
+                    ("Civil Engineering", "Civil Engineering"),
+                    ("Electrical Engineering", "Electrical Engineering"),
+                    ("Chemical Engineering", "Chemical Engineering"),
+                    ("Instrumentation Engineering", "Instrumentation Engineering"),
+                    ("Production Engineering", "Production Engineering"),
+                    ("Any", "Any / Open to all"),
+                    ] %}
+                    {% for val, label in branches %}
+                    <option value="{{ val }}" {% if profile.preferred_branch==val %}selected{% endif %}>{{ label }}
+                    </option>
+                    {% endfor %}
+                  </select>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold" for="preferred_city">Target City / District</label>
+                  <select class="form-select" id="preferred_city" name="preferred_city">
+                    <option value="" {% if not profile.preferred_city %}selected{% endif %}>All Cities / Anywhere in
+                      Maharashtra</option>
+                    {% for city in cities %}
+                    <option value="{{ city }}" {% if profile.preferred_city==city %}selected{% endif %}>{{ city }}
+                    </option>
+                    {% endfor %}
+                  </select>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold" for="max_fees">Max Annual Budget / Fee Cap</label>
+                  <select class="form-select" id="max_fees" name="max_fees">
+                    <option value="Any" {% if profile.max_fees=='Any' or not profile.max_fees %}selected{% endif %}>Any
+                      / No Budget Constraint</option>
+                    <option value="50000" {% if profile.max_fees=='50000' %}selected{% endif %}>Under ₹50,000 (Govt /
+                      Aided)</option>
+                    <option value="100000" {% if profile.max_fees=='100000' %}selected{% endif %}>Under ₹1,00,000 / year
+                    </option>
+                    <option value="150000" {% if profile.max_fees=='150000' %}selected{% endif %}>Under ₹1,50,000 / year
+                    </option>
+                    <option value="200000" {% if profile.max_fees=='200000' %}selected{% endif %}>Under ₹2,00,000 / year
+                    </option>
+                  </select>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold" for="college_type_pref">College Type Preference</label>
+                  <select class="form-select" id="college_type_pref" name="college_type_pref">
+                    <option value="Any" {% if profile.college_type_pref=='Any' or not profile.college_type_pref
+                      %}selected{% endif %}>Any Institute</option>
+                    <option value="Govt/Autonomous" {% if profile.college_type_pref=='Govt/Autonomous' %}selected{%
+                      endif %}>Government / Autonomous Only</option>
+                    <option value="Autonomous" {% if profile.college_type_pref=='Autonomous' %}selected{% endif %}>
+                      Autonomous Colleges</option>
+                    <option value="Private" {% if profile.college_type_pref=='Private' %}selected{% endif %}>Private /
+                      Unaided</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="p-3 bg-light rounded-3 border">
+                <div class="d-flex align-items-center justify-content-between">
+                  <div>
+                    <h6 class="fw-bold mb-1"><i class="bi bi-lightbulb text-warning me-1"></i>Unsure about which branch
+                      to pick?</h6>
+                    <p class="small text-muted mb-0">Our AI Branch Advisor evaluates your interest profile to recommend
+                      the top 3 best-fit engineering branches.</p>
+                  </div>
+                  <a href="{{ url_for('branch_advisor') }}" class="btn btn-sm btn-primary rounded-pill px-3">
+                    Take Quiz
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            {# ── TAB 4: CAP Documents Checklist ─────────────── #}
+            <div class="tab-pane fade" id="docs-pane" role="tabpanel">
+              <h5 class="fw-bold mb-2 text-dark"><i class="bi bi-file-earmark-check text-success me-2"></i>CAP Round
+                Document Verification Tracker</h5>
+              <p class="text-muted small mb-4">Track the physical documents required at the Scrutiny Center (FC) for
+                MHT-CET Centralised Admission Process.</p>
+
+              <div class="row g-3">
+                {% set docs = [
+                ("doc_cet_scorecard", "MHT-CET Scorecard (Printed)", "Compulsory for all candidates",
+                "doc_cet_scorecard"),
+                ("doc_hsc_marksheet", "HSC / 12th Standard Marksheet", "Original & 3 photocopies", "doc_hsc_marksheet"),
+                ("doc_ssc_marksheet", "SSC / 10th Standard Marksheet & Passing Certificate", "For date of birth proof",
+                "doc_ssc_marksheet"),
+                ("doc_domicile", "Maharashtra Domicile / Birth Certificate / TC", "Proves MH state candidature",
+                "doc_domicile"),
+                ("doc_caste_cert", "Caste Certificate (For Reserve Categories)", "Issued by Sub-Divisional Magistrate",
+                "doc_caste_cert"),
+                ("doc_caste_validity", "Caste Validity Certificate (Mandatory for CAP)", "Scrutiny committee verified",
+                "doc_caste_validity"),
+                ("doc_ncl", "Non-Creamy Layer Certificate (OBC/VJ/NT/SEBC)", "Valid up to 31st March of current AY",
+                "doc_ncl"),
+                ("doc_income_cert", "Income Certificate (For EWS / TFWS / EBC)", "Issued by Competent Authority /
+                Tehsildar", "doc_income_cert"),
+                ("doc_nationality", "Indian Nationality Certificate / Passport / LC", "Proof of Indian nationality",
+                "doc_nationality"),
+                ("doc_gap_cert", "Gap Certificate / Affidavit (If applicable)", "If there was a year drop after 12th",
+                "doc_gap_cert"),
+                ] %}
+
+                {% for key, title, desc, input_name in docs %}
+                <div class="col-md-6">
+                  <div class="doc-check-item d-flex align-items-start gap-3">
+                    <div class="form-check mt-1">
+                      <input class="form-check-input" type="checkbox" id="{{ key }}" name="{{ input_name }}"
+                        value="ready" {% if profile[input_name]=='ready' or profile[input_name]==True %}checked{% endif
+                        %}>
+                    </div>
+                    <div>
+                      <label class="form-check-label fw-bold text-dark mb-0 cursor-pointer" for="{{ key }}">
+                        {{ title }}
+                      </label>
+                      <div class="text-muted small">{{ desc }}</div>
+                    </div>
+                  </div>
+                </div>
+                {% endfor %}
+              </div>
+            </div>
+
+            {# ── TAB 5: Top Matches (if available) ───────────── #}
+            {% if top_colleges %}
+            <div class="tab-pane fade" id="matches-pane" role="tabpanel">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                  <h5 class="fw-bold mb-0 text-dark"><i class="bi bi-stars text-warning me-2"></i>Instant AI
+                    Recommendations</h5>
+                  <p class="text-muted small mb-0">Based on your {{ profile.cet_percentile }}%ile & {{ profile.category
+                    }} category.</p>
+                </div>
+                <a href="{{ url_for('recommendations') }}" class="btn btn-sm btn-primary-custom">
+                  Full Report <i class="bi bi-arrow-right ms-1"></i>
+                </a>
+              </div>
+
+              <div class="row g-3">
+                {% for col in top_colleges[:6] %}
+                <div class="col-md-6">
+                  <div class="card h-100 border rounded-3 p-3 hover-shadow transition">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                      <span class="badge bg-primary-subtle text-primary fw-semibold">{{ col.category or profile.category
+                        }}</span>
+                      <span class="badge bg-success-subtle text-success fw-semibold">Cutoff: {{ col.cutoff_percentile
+                        }}%ile</span>
+                    </div>
+                    <h6 class="fw-bold mb-1 text-truncate" title="{{ col.name }}">{{ col.name }}</h6>
+                    <div class="text-muted small mb-2"><i class="bi bi-geo-alt me-1"></i>{{ col.city }} &bull; {{
+                      col.branch }}</div>
+                    <div class="d-flex justify-content-between align-items-center mt-auto pt-2 border-top">
+                      <span class="small text-muted">Fees: <strong>₹{{ "{:,}".format(col.annual_fees) if col.annual_fees
+                          else 'N/A' }}</strong></span>
+                      {% if col.id %}
+                      <a href="{{ url_for('college_details', college_id=col.id) }}"
+                        class="btn btn-sm btn-outline-primary py-1 px-2">
+                        Details <i class="bi bi-chevron-right"></i>
+                      </a>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+                {% endfor %}
+              </div>
+            </div>
+            {% endif %}
+
+          </div>
+
+          {# Bottom Actions #}
+          <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mt-4 pt-3 border-top">
+            <div class="text-muted small">
+              <i class="bi bi-lock-fill me-1 text-secondary"></i> All changes are securely saved in your local session.
+            </div>
+            <div class="d-flex gap-2">
+              <button type="submit" class="btn btn-primary-custom px-4">
+                <i class="bi bi-save me-1"></i> Save Profile
+              </button>
+              <a href="{{ url_for('recommendations') }}" class="btn btn-outline-primary px-3 rounded-pill">
+                <i class="bi bi-search me-1"></i> Find Colleges Now
+              </a>
+            </div>
+          </div>
+        </form>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+
+{% endblock %}

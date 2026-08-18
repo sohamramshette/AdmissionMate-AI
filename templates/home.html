@@ -25,8 +25,11 @@
           instantly recommends the best-fit colleges and branches for you.
         </p>
         <div class="d-flex flex-wrap gap-3">
-          <a href="{{ url_for('find_colleges') }}" class="hero-cta-primary">
-            <i class="bi bi-search me-2"></i>Get Started Free
+          <a href="{{ url_for('profile') }}" class="hero-cta-primary">
+            <i class="bi bi-person-badge me-2"></i>My Student Profile
+          </a>
+          <a href="{{ url_for('find_colleges') }}" class="hero-cta-secondary" style="background:rgba(255,255,255,0.15)">
+            <i class="bi bi-search me-2"></i>Find Colleges
           </a>
           <a href="{{ url_for('chatbot') }}" class="hero-cta-secondary">
             <i class="bi bi-chat-dots me-2"></i>Ask AI
@@ -92,57 +95,79 @@
     <div class="row g-4">
 
       {# Feature 1 #}
-      <div class="col-sm-6 col-lg-3 reveal">
-        <div class="feature-card">
+      <div class="col-sm-6 col-lg-4 reveal">
+        <div class="feature-card h-100">
           <div class="feature-icon icon-indigo">
-            <i class="bi bi-stars"></i>
+            <i class="bi bi-person-badge"></i>
           </div>
-          <h5 class="fw-700 mb-2">Smart Recommendations</h5>
+          <h5 class="fw-700 mb-2">Student Profile Hub</h5>
           <p class="text-muted small mb-0">
-            IBM Watsonx AI analyses your profile and suggests the most suitable
-            colleges, ranked by fit score.
+            Keep your MHT-CET scores, category credentials, preferences, and CAP document checklist all in one central dashboard.
           </p>
         </div>
       </div>
 
       {# Feature 2 #}
-      <div class="col-sm-6 col-lg-3 reveal delay-1">
-        <div class="feature-card">
+      <div class="col-sm-6 col-lg-4 reveal delay-1">
+        <div class="feature-card h-100">
           <div class="feature-icon icon-sky">
-            <i class="bi bi-bar-chart-steps"></i>
+            <i class="bi bi-stars"></i>
           </div>
-          <h5 class="fw-700 mb-2">College Comparison</h5>
+          <h5 class="fw-700 mb-2">Smart Recommendations</h5>
           <p class="text-muted small mb-0">
-            Compare multiple colleges side-by-side on cutoffs, fees, placement
-            records, and available branches.
+            IBM Watsonx AI analyses your percentile and preferences to suggest the most suitable dream, target, and safe colleges.
           </p>
         </div>
       </div>
 
       {# Feature 3 #}
-      <div class="col-sm-6 col-lg-3 reveal delay-2">
-        <div class="feature-card">
+      <div class="col-sm-6 col-lg-4 reveal delay-2">
+        <div class="feature-card h-100">
           <div class="feature-icon icon-amber">
-            <i class="bi bi-chat-dots"></i>
+            <i class="bi bi-list-ol"></i>
           </div>
-          <h5 class="fw-700 mb-2">AI Chat Assistant</h5>
+          <h5 class="fw-700 mb-2">AI CAP Preference Generator</h5>
           <p class="text-muted small mb-0">
-            Ask any admission question in plain language and get instant,
-            personalised guidance from our AI.
+            Intelligent algorithm that builds a risk-balanced 300-choice option list for Maharashtra CET CAP Rounds.
           </p>
         </div>
       </div>
 
       {# Feature 4 #}
-      <div class="col-sm-6 col-lg-3 reveal delay-3">
-        <div class="feature-card">
+      <div class="col-sm-6 col-lg-4 reveal delay-1">
+        <div class="feature-card h-100">
           <div class="feature-icon icon-emerald">
-            <i class="bi bi-database-check"></i>
+            <i class="bi bi-bar-chart-steps"></i>
           </div>
-          <h5 class="fw-700 mb-2">Real-time Dataset</h5>
+          <h5 class="fw-700 mb-2">College Comparison</h5>
           <p class="text-muted small mb-0">
-            Built on an up-to-date dataset of Maharashtra CET cutoffs across
-            all categories and branches.
+            Compare multiple colleges side-by-side on category cutoffs, annual fees, university affiliation, and available streams.
+          </p>
+        </div>
+      </div>
+
+      {# Feature 5 #}
+      <div class="col-sm-6 col-lg-4 reveal delay-2">
+        <div class="feature-card h-100">
+          <div class="feature-icon icon-indigo" style="background:#e0e7ff; color:#4f46e5;">
+            <i class="bi bi-compass"></i>
+          </div>
+          <h5 class="fw-700 mb-2">AI Branch Advisor</h5>
+          <p class="text-muted small mb-0">
+            Interactive questionnaire mapping your interests and career goals to the ideal engineering specialization.
+          </p>
+        </div>
+      </div>
+
+      {# Feature 6 #}
+      <div class="col-sm-6 col-lg-4 reveal delay-3">
+        <div class="feature-card h-100">
+          <div class="feature-icon icon-amber" style="background:#fef3c7; color:#d97706;">
+            <i class="bi bi-chat-dots"></i>
+          </div>
+          <h5 class="fw-700 mb-2">AI Chat Assistant</h5>
+          <p class="text-muted small mb-0">
+            Ask any admission, cutoff, or eligibility question in plain language and get instant, grounded guidance from Watsonx AI.
           </p>
         </div>
       </div>

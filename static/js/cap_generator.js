@@ -180,8 +180,32 @@
     if (currentStep > 1) { currentStep--; renderStep(currentStep); }
   });
 
+  /* ─── Keyboard: Enter key advances to Next step ──────── */
+  form.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" || e.keyCode === 13) {
+      // Don't intercept if user is in a textarea
+      if (e.target && e.target.tagName === "TEXTAREA") return;
+
+      e.preventDefault();
+      if (currentStep < TOTAL_STEPS) {
+        btnNext.click();
+      } else {
+        if (validateStep(currentStep)) {
+          syncSelectedBranches();
+          form.submit();
+        }
+      }
+    }
+  });
+
   /* ─── Pre-submit: sync hidden branch field ──────────── */
   form.addEventListener("submit", (e) => {
+    // If not on the final review step, prevent submit and go next
+    if (currentStep < TOTAL_STEPS) {
+      e.preventDefault();
+      btnNext.click();
+      return;
+    }
     if (!validateStep(currentStep)) { e.preventDefault(); return; }
     syncSelectedBranches();
   });

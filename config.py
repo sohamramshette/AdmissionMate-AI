@@ -26,6 +26,7 @@ class Config:
     SECRET_KEY: str = os.environ.get("SECRET_KEY", "change-me-in-production-please")
     DEBUG: bool = os.environ.get("FLASK_DEBUG", "false").lower() == "true"
     TESTING: bool = False
+    TEMPLATES_AUTO_RELOAD: bool = True
 
     # ------------------------------------------------------------------
     # Application metadata

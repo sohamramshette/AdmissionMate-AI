@@ -79,6 +79,7 @@
               id="cetPercentile"
               name="cet_percentile"
               placeholder="e.g. 94.50"
+              value="{{ saved_profile.cet_percentile if saved_profile and saved_profile.cet_percentile else '' }}"
               min="0" max="100" step="0.01"
               autocomplete="off"
             />
@@ -92,7 +93,7 @@
 
             <div class="pill-group" id="categoryGroup">
               {% for cat in ['OPEN','OBC','SC','ST','NT','VJ','EWS','SBC'] %}
-              <input type="radio" name="category" id="cat_{{ cat }}" value="{{ cat }}" />
+              <input type="radio" name="category" id="cat_{{ cat }}" value="{{ cat }}" {% if saved_profile and saved_profile.category and (saved_profile.category == cat or (cat == 'NT' and saved_profile.category.startswith('NT'))) %}checked{% endif %} />
               <label for="cat_{{ cat }}">{{ cat }}</label>
               {% endfor %}
             </div>
@@ -106,7 +107,7 @@
 
             <div class="pill-group" id="genderGroup">
               {% for g in ['Male','Female'] %}
-              <input type="radio" name="gender" id="gen_{{ g }}" value="{{ g }}" />
+              <input type="radio" name="gender" id="gen_{{ g }}" value="{{ g }}" {% if saved_profile and saved_profile.gender == g %}checked{% endif %} />
               <label for="gen_{{ g }}">{{ g }}</label>
               {% endfor %}
             </div>
@@ -122,7 +123,7 @@
             <select class="cap-input" id="homeUniversity" name="home_university">
               <option value="">— Select university —</option>
               {% for uni in universities %}
-              <option value="{{ uni }}">{{ uni }}</option>
+              <option value="{{ uni }}" {% if saved_profile and saved_profile.home_university == uni %}selected{% endif %}>{{ uni }}</option>
               {% endfor %}
             </select>
             <div id="err4" class="step-error"></div>

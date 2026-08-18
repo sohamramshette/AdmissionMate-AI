@@ -22,6 +22,131 @@ def create_app(config_class=Config):
     app.config.from_object(config_class)
 
     # -----------------------------------------------------------------------
+    # Context Processor: Inject student profile globally into templates
+    # -----------------------------------------------------------------------
+    @app.context_processor
+    def inject_user_profile():
+        from flask import session
+        prof = session.get("student_profile") or session.get("student_data") or {}
+        return {"current_student": prof}
+
+    # -----------------------------------------------------------------------
+    # Route: Profile Management (Dedicated Student Profile Hub)
+    # -----------------------------------------------------------------------
+    @app.route("/profile", methods=["GET"])
+    def profile():
+        """Dedicated student profile hub and credentials dashboard."""
+        from flask import session
+        from services.dataset import get_available_cities, get_available_universities
+
+        # Load profile data from session
+        profile_data = session.get("student_profile")
+        if not profile_data:
+            # Fallback to student_data if present
+            profile_data = session.get("student_data", {})
+
+        # Calculate profile completion percentage
+        key_fields = ["name", "cet_percentile", "category", "preferred_branch", "preferred_city", "hsc_percentage", "home_university"]
+        filled_count = sum(1 for k in key_fields if profile_data.get(k))
+        completion_score = int((filled_count / len(key_fields)) * 100) if key_fields else 0
+        if completion_score == 0 and profile_data.get("name"):
+            completion_score = 35
+
+        # Load dropdown lists
+        try:
+            cities = get_available_cities()
+            universities = get_available_universities()
+        except Exception:
+            cities = []
+            universities = []
+
+        # Top colleges preview if percentile is available
+        top_colleges = []
+        if profile_data.get("cet_percentile"):
+            try:
+                rec_res = get_recommendations(profile_data)
+                top_colleges = rec_res.get("recommendations", [])
+            except Exception:
+                top_colleges = []
+
+        return render_template(
+            "profile.html",
+            title="Student Profile",
+            profile=profile_data,
+            completion_score=completion_score,
+            cities=cities,
+            universities=universities,
+            top_colleges=top_colleges
+        )
+
+    @app.route("/profile/save", methods=["POST"])
+    def profile_save():
+        """Save student profile details to session."""
+        from flask import session
+
+        profile_data = {
+            "name": request.form.get("name", "").strip(),
+            "email": request.form.get("email", "").strip(),
+            "phone": request.form.get("phone", "").strip(),
+            "gender": request.form.get("gender", ""),
+            "application_id": request.form.get("application_id", "").strip(),
+            "domicile": request.form.get("domicile", ""),
+            "hsc_percentage": request.form.get("hsc_percentage", ""),
+            "pcm_marks": request.form.get("pcm_marks", ""),
+            "ssc_percentage": request.form.get("ssc_percentage", ""),
+
+            "cet_percentile": request.form.get("cet_percentile", "").strip(),
+            "exam_group": request.form.get("exam_group", "PCM"),
+            "jee_percentile": request.form.get("jee_percentile", "").strip(),
+            "category": request.form.get("category", "OPEN"),
+            "home_university": request.form.get("home_university", ""),
+            "annual_family_income": request.form.get("annual_family_income", ""),
+
+            "tfws_eligible": request.form.get("tfws_eligible") == "yes",
+            "defence_quota": request.form.get("defence_quota") == "yes",
+            "pwd_quota": request.form.get("pwd_quota") == "yes",
+            "minority_quota": request.form.get("minority_quota") == "yes",
+
+            "preferred_branch": request.form.get("preferred_branch", ""),
+            "preferred_city": request.form.get("preferred_city", ""),
+            "max_fees": request.form.get("max_fees", "Any"),
+            "college_type_pref": request.form.get("college_type_pref", "Any"),
+
+            "doc_cet_scorecard": request.form.get("doc_cet_scorecard") == "ready",
+            "doc_hsc_marksheet": request.form.get("doc_hsc_marksheet") == "ready",
+            "doc_ssc_marksheet": request.form.get("doc_ssc_marksheet") == "ready",
+            "doc_domicile": request.form.get("doc_domicile") == "ready",
+            "doc_caste_cert": request.form.get("doc_caste_cert") == "ready",
+            "doc_caste_validity": request.form.get("doc_caste_validity") == "ready",
+            "doc_ncl": request.form.get("doc_ncl") == "ready",
+            "doc_income_cert": request.form.get("doc_income_cert") == "ready",
+            "doc_nationality": request.form.get("doc_nationality") == "ready",
+            "doc_gap_cert": request.form.get("doc_gap_cert") == "ready",
+        }
+
+        session["student_profile"] = profile_data
+        # Sync core student_data for compatibility with existing recommendation / comparison flows
+        session["student_data"] = {
+            "name": profile_data["name"],
+            "cet_percentile": profile_data["cet_percentile"],
+            "category": profile_data["category"],
+            "preferred_branch": profile_data["preferred_branch"],
+            "preferred_city": profile_data["preferred_city"],
+        }
+
+        flash("Profile updated successfully!", "success")
+        return redirect(url_for("profile"))
+
+    @app.route("/profile/reset", methods=["GET", "POST"])
+    def profile_reset():
+        """Reset profile data in session."""
+        from flask import session
+        session.pop("student_profile", None)
+        session.pop("student_data", None)
+        flash("Profile has been reset.", "info")
+        return redirect(url_for("profile"))
+
+    # -----------------------------------------------------------------------
     # Route: Home
     # -----------------------------------------------------------------------
     @app.route("/")
@@ -35,6 +160,8 @@ def create_app(config_class=Config):
     @app.route("/find-colleges", methods=["GET", "POST"])
     def find_colleges():
         """Collect student details and forward to the recommendations page."""
+        from flask import session
+
         if request.method == "POST":
             # Gather form fields
             student_data = {
@@ -48,15 +175,24 @@ def create_app(config_class=Config):
             # Basic validation — all fields required
             if not all(student_data.values()):
                 flash("Please fill in all fields before proceeding.", "warning")
+                saved_profile = session.get("student_profile") or session.get("student_data") or {}
                 return render_template("student_form.html", title="Find Colleges",
-                                       student_data=student_data)
+                                       student_data=student_data, saved_profile=saved_profile)
 
             # Persist to session so the recommendations page can access it
-            from flask import session
             session["student_data"] = student_data
+            
+            # Sync to student_profile as well
+            if "student_profile" not in session or not session["student_profile"]:
+                session["student_profile"] = student_data
+            else:
+                session["student_profile"].update(student_data)
+
             return redirect(url_for("recommendations"))
 
-        return render_template("student_form.html", title="Find Colleges")
+        # Pre-populate form if user already saved a profile
+        existing_profile = session.get("student_profile") or session.get("student_data") or {}
+        return render_template("student_form.html", title="Find Colleges", student_data=existing_profile, saved_profile=existing_profile)
 
     # -----------------------------------------------------------------------
     # Route: Recommendations
@@ -284,12 +420,16 @@ def create_app(config_class=Config):
                 preferences=preferences,
             )
 
+        from flask import session
+        saved_profile = session.get("student_profile") or session.get("student_data") or {}
+
         return render_template(
             "cap_generator.html",
             title="AI CAP Generator",
             universities=universities,
             cities=cities,
             branch_groups=branch_groups,
+            saved_profile=saved_profile,
         )
 
     # -----------------------------------------------------------------------
